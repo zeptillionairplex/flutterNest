@@ -65,7 +65,11 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
       - 1-1-1. MySQL 직접 설치  
          [mysql-installer-community-8.0.33.0.msi](https://downloads.mysql.com/archives/get/p/25/file/mysql-installer-community-8.0.33.0.msi)  
       - 1-1-2. 도커로 이미지 설치 및 실행  
-         [Docker를 사용하여 MySQL 설치하고 접속하기](https://poiemaweb.com/docker-mysql)  
+         [Docker를 사용하여 MySQL 설치하고 접속하기](https://poiemaweb.com/docker-mysql)
+        ```bash
+        # PowerShell
+        docker pull mysql:8.0.33
+        ``` 
 
 3. **Nest.js CLI 설치**  
    아래 명령어로 Nest.js CLI를 설치합니다.
