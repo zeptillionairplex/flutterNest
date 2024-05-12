@@ -24,12 +24,12 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
 
 #### 1. Flutter 개발 환경 설정
 1. **Flutter SDK 설치**  
-   [Flutter SDK 다운로드 링크](https://docs.flutter.dev/get-started/install)
+   [Flutter SDK 다운로드 링크](https://docs.flutter.dev/get-started/install)  
    [flutter_windows_3.10.0-stable.zip](https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.10.0-stable.zip)
    - 설치 후 환경 변수에 Flutter 경로를 추가합니다.
 
 3. **Android Studio 설치**  
-   [Android Studio 다운로드 링크](https://developer.android.com/studio)
+   [Android Studio 다운로드 링크](https://developer.android.com/studio)  
    [android-studio-2020.3.1.22-windows.exe](https://redirector.gvt1.com/edgedl/android/studio/install/2020.3.1.22/android-studio-2020.3.1.22-windows.exe)
    - 설치 후 Flutter 및 Dart 플러그인을 설치합니다.
 
@@ -57,7 +57,7 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
 
 #### 2. Nest.js 개발 환경 설정
 1. **Node.js 설치**  
-   [Node.js 다운로드 링크](https://nodejs.org/dist/v18.16.0/)
+   [Node.js 다운로드 링크](https://nodejs.org/dist/v18.16.0/)  
    [node.exe v18.16.0](https://nodejs.org/dist/v18.16.0/win-x64/node.exe)
    - Node.js 설치 시 npm도 함께 설치됩니다.
 
