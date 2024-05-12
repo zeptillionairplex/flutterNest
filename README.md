@@ -25,19 +25,21 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
 #### 1. Flutter 개발 환경 설정
 1. **Flutter SDK 설치**  
    [Flutter SDK 다운로드 링크](https://docs.flutter.dev/get-started/install)
+   [flutter_windows_3.10.0-stable.zip](https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.10.0-stable.zip)
    - 설치 후 환경 변수에 Flutter 경로를 추가합니다.
 
-2. **Android Studio 설치**  
+3. **Android Studio 설치**  
    [Android Studio 다운로드 링크](https://developer.android.com/studio)
+   [android-studio-2020.3.1.22-windows.exe](https://redirector.gvt1.com/edgedl/android/studio/install/2020.3.1.22/android-studio-2020.3.1.22-windows.exe)
    - 설치 후 Flutter 및 Dart 플러그인을 설치합니다.
 
-3. **Flutter SDK 및 Android Studio 버전 확인**
+5. **Flutter SDK 및 Android Studio 버전 확인**
    아래 명령어로 Flutter 환경 정보를 확인할 수 있습니다.
    ```bash
    flutter doctor
    ```
 
-4. **Gradle 및 Kotlin 버전 설정**
+6. **Gradle 및 Kotlin 버전 설정**
    `android/build.gradle` 파일에서 해당 버전을 설정합니다.
    ```gradle
    buildscript {
@@ -55,16 +57,17 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
 
 #### 2. Nest.js 개발 환경 설정
 1. **Node.js 설치**  
-   [Node.js 다운로드 링크](https://nodejs.org/en/download)
+   [Node.js 다운로드 링크](https://nodejs.org/dist/v18.16.0/)
+   [node.exe v18.16.0](https://nodejs.org/dist/v18.16.0/win-x64/node.exe)
    - Node.js 설치 시 npm도 함께 설치됩니다.
 
-2. **Nest.js CLI 설치**  
+3. **Nest.js CLI 설치**  
    아래 명령어로 Nest.js CLI를 설치합니다.
    ```bash
    npm i -g @nestjs/cli@10.0.0
    ```
 
-3. **프로젝트 생성 및 패키지 설치**
+4. **프로젝트 생성 및 패키지 설치**
    프로젝트를 생성하고 필요한 패키지를 설치합니다.
    ```bash
    nest new shopping-mall-backend
@@ -73,7 +76,7 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
    npm install @nestjs/config@2.0.0
    ```
 
-4. **프로젝트 구성 파일**
+5. **프로젝트 구성 파일**
    위에서 제공된 Nest.js 및 Flutter 코드 조각을 각 프로젝트에 복사하여 사용하세요.
 
 ### 종합 버전 정보 표
