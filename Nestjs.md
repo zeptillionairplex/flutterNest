@@ -700,12 +700,7 @@ class CartItemWidget extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(5),
                 child: FittedBox(
-                  child: Text('\$${price
-
-알겠습니다! `lib/widgets/cart_item.dart` 파일을 계속해서 완성하겠습니다.
-
-```dart
-                child: Text('\$${price.toStringAsFixed(2)}'),
+                  child: Text('\$${price.toStringAsFixed(2)}'),
               ),
             ),
           ),
