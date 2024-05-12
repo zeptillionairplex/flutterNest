@@ -58,7 +58,7 @@ Flutter와 Nest.js 개발을 위해 필요한 버전 정보를 아래 표로 정
 #### 2. Nest.js 개발 환경 설정
 1. **Node.js 설치**  
    [Node.js 다운로드 링크](https://nodejs.org/dist/v18.16.0/)  
-   [node.exe v18.16.0](https://nodejs.org/dist/v18.16.0/win-x64/node.exe)
+   [node-v18.16.0-x64.msi](https://nodejs.org/dist/v18.16.0/node-v18.16.0-x64.msi)
    - Node.js 설치 시 npm도 함께 설치됩니다.
 
 3. **Nest.js CLI 설치**  
