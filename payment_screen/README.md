@@ -1088,3 +1088,491 @@ shopping_mall_backend/
 - [TypeORM 공식 문서](https://typeorm.io/)
 
 이 매뉴얼을 통해 간단한 쇼핑몰 앱을 완성할 수 있습니다. 각 기능을 확장하고 다른 페이지를 추가하여 프로젝트를 발전시켜 나가시길 바랍니다.
+
+**24. 관리자 페이지 작성**
+
+관리자 페이지에서는 상품 관리, 주문 관리, 사용자 관리 등을 수행할 수 있도록 구현합니다.
+
+**1. 관리자 페이지 메인**
+
+- `lib/pages/admin/admin_main_page.dart` 파일 작성:
+
+```dart
+// lib/pages/admin/admin_main_page.dart
+import 'package:flutter/material.dart';
+import 'admin_product_page.dart';
+import 'admin_order_page.dart';
+import 'admin_user_page.dart';
+
+class AdminMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Admin Dashboard')),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text('Product Management'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdminProductPage()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Order Management'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdminOrderPage()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('User Management'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdminUserPage()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+**2. 상품 관리 페이지**
+
+- `lib/pages/admin/admin_product_page.dart` 파일 작성:
+
+```dart
+// lib/pages/admin/admin_product_page.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/product_provider.dart';
+import '../../models/product.dart';
+
+class AdminProductPage extends StatelessWidget {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _imageUrlController = TextEditingController();
+
+  void _clearForm() {
+    _nameController.clear();
+    _priceController.clear();
+    _descriptionController.clear();
+    _imageUrlController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Product Management')),
+      body: Consumer<ProductProvider>(
+        builder: (context, productProvider, child) {
+          return Column(
+            children: [
+              Expanded(
+                child: FutureBuilder(
+                  future: productProvider.fetchProducts(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else {
+                      return ListView.builder(
+                        itemCount: productProvider.products.length,
+                        itemBuilder: (context, index) {
+                          final product = productProvider.products[index];
+                          return ListTile(
+                            title: Text(product.name),
+                            subtitle: Text('\$${product.price}'),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                productProvider.deleteProduct(product.id!);
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(labelText: 'Product Name'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a product name';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: _priceController,
+                        decoration: InputDecoration(labelText: 'Price'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a price';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Please enter a valid number';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: InputDecoration(labelText: 'Description'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a description';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: _imageUrlController,
+                        decoration: InputDecoration(labelText: 'Image URL'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter an image URL';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            final product = Product(
+                              name: _nameController.text,
+                              price: double.parse(_priceController.text),
+                              description: _descriptionController.text,
+                              imageUrl: _imageUrlController.text,
+                            );
+
+                            productProvider.createProduct(product);
+                            _clearForm();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Product added successfully!')),
+                            );
+                          }
+                        },
+                        child: Text('Add Product'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+**3. 주문 관리 페이지**
+
+- `lib/pages/admin/admin_order_page.dart` 파일 작성:
+
+```dart
+// lib/pages/admin/admin_order_page.dart
+import 'package:flutter/material.dart';
+
+class AdminOrderPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Order Management')),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text('Order #1'),
+            subtitle: Text('Status: Delivered'),
+            trailing: Icon(Icons.check_circle, color: Colors.green),
+          ),
+          ListTile(
+            title: Text('Order #2'),
+            subtitle: Text('Status: Pending'),
+            trailing: Icon(Icons.hourglass_empty, color: Colors.orange),
+          ),
+          ListTile(
+            title: Text('Order #3'),
+            subtitle: Text('Status: Cancelled'),
+            trailing: Icon(Icons.cancel, color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+**4. 사용자 관리 페이지**
+
+- `lib/pages/admin/admin_user_page.dart` 파일 작성:
+
+```dart
+// lib/pages/admin/admin_user_page.dart
+import 'package:flutter/material.dart';
+
+class AdminUserPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('User Management')),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text('User #1'),
+            subtitle: Text('Role: Admin'),
+            trailing: Icon(Icons.admin_panel_settings, color: Colors.blue),
+          ),
+          ListTile(
+            title: Text('User #2'),
+            subtitle: Text('Role: Customer'),
+            trailing: Icon(Icons.person, color: Colors.green),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+**5. 메인 앱에 관리자 페이지 추가**
+
+- `lib/pages/main_page.dart` 파일 수정:
+
+```dart
+// lib/pages/main_page.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/product_provider.dart';
+import 'product_detail_page.dart';
+import 'cart_page.dart';
+import 'account_page.dart';
+import 'admin/admin_main_page.dart';
+
+class MainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Shopping Mall'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.admin_panel_settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdminMainPage()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Consumer<ProductProvider>(
+        builder: (context, productProvider, child) {
+          return FutureBuilder(
+            future: productProvider.fetchProducts(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                return ListView.builder(
+                  itemCount: productProvider.products.length,
+                  itemBuilder: (context, index) {
+                    final product = productProvider.products[index];
+                    return ListTile(
+                      title: Text(product.name),
+                      subtitle: Text('\$${product.price}'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailPage(productId: product.id!),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              }
+            },
+          );
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CartPage()));
+              break;
+            case 1:
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AccountPage()));
+              break;
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Account',
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+**6. 최종 구조**
+
+최종 프로젝트 구조는 아래와 같습니다:
+
+```
+shopping_mall_frontend/
+├── lib/
+│   ├── models/
+│   │   ├── cart_item.dart
+│   │   └── product.dart
+│   ├── pages/
+│   │
+│   │   ├── admin/
+│   │   │   ├── admin_main_page.dart
+│   │   │   ├── admin_order_page.dart
+│   │   │   ├── admin_product_page.dart
+│   │   │   └── admin_user_page.dart
+│   │   ├── account_page.dart
+│   │   ├── cart_page.dart
+│   │   ├── main_page.dart
+│   │   ├── order_confirmation_page.dart
+│   │   ├── payment_completion_page.dart
+│   │   ├── payment_page.dart
+│   │   ├── product_detail_page.dart
+│   │   └── return_and_refund_page.dart
+│   ├── providers/
+│   │   ├── cart_provider.dart
+│   │   └── product_provider.dart
+│   ├── services/
+│   │   └── product_service.dart
+│   └── main.dart
+├── pubspec.yaml
+└── .env
+
+shopping_mall_backend/
+├── src/
+│   ├── app.module.ts
+│   ├── main.ts
+│   └── product/
+│       ├── product.controller.ts
+│       ├── product.entity.ts
+│       ├── product.module.ts
+│       ├── product.repository.ts
+│       └── product.service.ts
+├── tsconfig.json
+└── .env
+```
+
+**7. 관리자 페이지 확장 아이디어**
+
+- **주문 관리 확장**: 주문의 상태를 변경하고, 주문 세부 정보를 확인할 수 있도록 기능 추가.
+- **사용자 관리 확장**: 사용자 등급을 변경하거나, 사용자 정보를 수정할 수 있는 기능 추가.
+- **상품 관리 확장**: 상품 이미지를 업로드할 수 있는 기능 추가.
+- **대시보드**: 관리자 페이지에 통계 및 각종 지표를 확인할 수 있는 대시보드 추가.
+
+### 예시 코드 확장
+
+**1. 주문 관리 확장**
+
+- `lib/pages/admin/admin_order_page.dart` 파일 수정:
+
+```dart
+// lib/pages/admin/admin_order_page.dart
+import 'package:flutter/material.dart';
+
+class AdminOrderPage extends StatelessWidget {
+  final List<Map<String, dynamic>> _orders = [
+    {'id': 1, 'status': 'Delivered', 'items': 3, 'total': 120.00},
+    {'id': 2, 'status': 'Pending', 'items': 1, 'total': 50.00},
+    {'id': 3, 'status': 'Cancelled', 'items': 2, 'total': 80.00},
+  ];
+
+  void _changeOrderStatus(BuildContext context, int orderId, String newStatus) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Order #$orderId status changed to $newStatus')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Order Management')),
+      body: ListView.builder(
+        itemCount: _orders.length,
+        itemBuilder: (context, index) {
+          final order = _orders[index];
+          return ListTile(
+            title: Text('Order #${order['id']}'),
+            subtitle: Text('Status: ${order['status']} | Items: ${order['items']} | Total: \$${order['total']}'),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => _changeOrderStatus(context, order['id'], value),
+              itemBuilder: (context) => [
+                PopupMenuItem(value: 'Delivered', child: Text('Delivered')),
+                PopupMenuItem(value: 'Pending', child: Text('Pending')),
+                PopupMenuItem(value: 'Cancelled', child: Text('Cancelled')),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+**2. 사용자 관리 확장**
+
+- `lib/pages/admin/admin_user_page.dart` 파일 수정:
+
+```dart
+// lib/pages/admin/admin_user_page.dart
+import 'package:flutter/material.dart';
+
+class AdminUserPage extends StatelessWidget {
+  final List<Map<String, dynamic>> _users = [
+    {'id': 1, 'name': 'Admin User', 'role': 'Admin'},
+    {'id': 2, 'name': 'Regular User', 'role': 'Customer'},
+  ];
+
+  void _changeUserRole(BuildContext context, int userId, String newRole) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('User #$userId role changed to $newRole')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('User Management
