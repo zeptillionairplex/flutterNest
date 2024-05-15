@@ -74,7 +74,7 @@ import { Product } from './product.entity';
 export class ProductRepository extends Repository<Product> {}
 ```
 <details>
-   <summary>** class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가? **</summary>
+   <summary>class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?</summary>
 
 ```typescript
 // src/products/products.repository.ts
