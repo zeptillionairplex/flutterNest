@@ -1575,4 +1575,85 @@ class AdminUserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('User Management
+      appBar: AppBar(title: Text('User Management')),
+      body: ListView.builder(
+        itemCount: _users.length,
+        itemBuilder: (context, index) {
+          final user = _users[index];
+          return ListTile(
+            title: Text(user['name']),
+            subtitle: Text('Role: ${user['role']}'),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => _changeUserRole(context, user['id'], value),
+              itemBuilder: (context) => [
+                PopupMenuItem(value: 'Admin', child: Text('Admin')),
+                PopupMenuItem(value: 'Customer', child: Text('Customer')),
+                PopupMenuItem(value: 'Moderator', child: Text('Moderator')),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+### 결론
+
+이렇게 관리자 페이지를 추가함으로써 쇼핑몰 앱의 기능이 크게 확장되었습니다. 이제 상품 관리, 주문 관리, 사용자 관리 등 다양한 기능을 제공하는 완전한 쇼핑몰 앱이 되었습니다. 
+
+**최종 프로젝트 구조**
+
+```
+shopping_mall_frontend/
+├── lib/
+│   ├── models/
+│   │   ├── cart_item.dart
+│   │   └── product.dart
+│   ├── pages/
+│   │   ├── admin/
+│   │   │   ├── admin_main_page.dart
+│   │   │   ├── admin_order_page.dart
+│   │   │   ├── admin_product_page.dart
+│   │   │   └── admin_user_page.dart
+│   │   ├── account_page.dart
+│   │   ├── cart_page.dart
+│   │   ├── main_page.dart
+│   │   ├── order_confirmation_page.dart
+│   │   ├── payment_completion_page.dart
+│   │   ├── payment_page.dart
+│   │   ├── product_detail_page.dart
+│   │   └── return_and_refund_page.dart
+│   ├── providers/
+│   │   ├── cart_provider.dart
+│   │   └── product_provider.dart
+│   ├── services/
+│   │   └── product_service.dart
+│   └── main.dart
+├── pubspec.yaml
+└── .env
+
+shopping_mall_backend/
+├── src/
+│   ├── app.module.ts
+│   ├── main.ts
+│   └── product/
+│       ├── product.controller.ts
+│       ├── product.entity.ts
+│       ├── product.module.ts
+│       ├── product.repository.ts
+│       └── product.service.ts
+├── tsconfig.json
+└── .env
+```
+
+**확장 아이디어**
+
+- **통계 및 분석**: 관리자 페이지에 매출, 사용자 활동, 주문 상태 등의 통계를 시각화하여 표시.
+- **상품 검색 및 필터링**: 상품 목록을 다양한 기준으로 필터링할 수 있는 검색 기능 추가.
+- **알림 시스템**: 신규 주문, 환불 요청 등 중요한 이벤트에 대한 알림 시스템 구축.
+
+**마무리**
+
+이 매뉴얼을 따라 Flutter 프론트엔드 및 Nest.js 백엔드로 쇼핑몰 프로젝트를 완성할 수 있습니다. 앱의 모든 기능을 확장하고 다양한 추가 기능을 더하여 완전한 쇼핑몰 플랫폼을 구축해보세요.
