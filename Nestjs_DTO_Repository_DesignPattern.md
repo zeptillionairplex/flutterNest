@@ -73,13 +73,17 @@ import { Product } from './product.entity';
 @EntityRepository(Product)
 export class ProductRepository extends Repository<Product> {}
 ```
-
-"// src/products/products.repository.ts
-import { Repository, EntityRepository } from 'typeorm';
-import { Product } from './product.entity';
-
-@EntityRepository(Product)
-export class ProductRepository extends Repository<Product> {}" 에서 class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?
+<details>
+   <summary>class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?</summary>
+|```nestjs
+|// src/products/products.repository.ts
+|import { Repository, EntityRepository } from 'typeorm';
+|import { Product } from './product.entity';
+|
+|@EntityRepository(Product)
+|export class ProductRepository extends Repository<Product> {}
+|```
+|에서 class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?
 
 네, `ProductRepository` 클래스에 별다른 코드가 없더라도, NestJS와 TypeORM의 구조 덕분에 데이터베이스에 접근하여 데이터를 관리할 수 있습니다. 이는 TypeORM의 **자동 생성된 리포지토리 기능** 덕분입니다.
 
@@ -171,6 +175,7 @@ export class ProductsModule {}
 
 ### 결론
 `ProductRepository` 클래스에 코드가 없더라도, TypeORM의 `Repository` 클래스를 상속하기 때문에 이미 내장된 CRUD 메서드를 사용할 수 있습니다. 이를 통해 개발자는 추가적인 구현 없이도 데이터베이스에 접근하고, 데이터를 관리할 수 있습니다.
+</details>
 
 #### **`products.service.ts`** (Service)
 서비스 계층에서 레포지토리를 사용해 비즈니스 로직을 구현합니다.
