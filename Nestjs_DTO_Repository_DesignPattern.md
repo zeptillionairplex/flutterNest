@@ -74,6 +74,104 @@ import { Product } from './product.entity';
 export class ProductRepository extends Repository<Product> {}
 ```
 
+"// src/products/products.repository.ts
+import { Repository, EntityRepository } from 'typeorm';
+import { Product } from './product.entity';
+
+@EntityRepository(Product)
+export class ProductRepository extends Repository<Product> {}" 에서 class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?
+
+네, `ProductRepository` 클래스에 별다른 코드가 없더라도, NestJS와 TypeORM의 구조 덕분에 데이터베이스에 접근하여 데이터를 관리할 수 있습니다. 이는 TypeORM의 **자동 생성된 리포지토리 기능** 덕분입니다.
+
+### 자동 생성된 레포지토리
+`Repository`, `EntityRepository`는 TypeORM에서 제공하는 기능으로, `Repository` 클래스는 이미 CRUD와 관련된 메서드를 내장하고 있습니다.
+
+> `class ProductRepository extends Repository<Product> {}`
+
+위 코드에서 `ProductRepository`는 TypeORM의 `Repository` 클래스를 상속받습니다. `Repository` 클래스는 `find`, `findOne`, `save`, `delete` 등 기본적인 CRUD 기능을 제공합니다.
+
+### 예시: `find` 메서드 사용
+
+**Service 코드**
+```typescript
+// src/products/products.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ProductRepository } from './products.repository';
+import { ProductDTO } from '../common/dto/product.dto';
+import { Product } from './product.entity';
+
+@Injectable()
+export class ProductsService {
+  constructor(
+    @InjectRepository(ProductRepository)
+    private readonly productRepository: ProductRepository,
+  ) {}
+
+  async findAll(): Promise<ProductDTO[]> {
+    const products = await this.productRepository.find();
+    return products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+    }));
+  }
+
+  async findOne(id: number): Promise<ProductDTO> {
+    const product = await this.productRepository.findOne(id);
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+    };
+  }
+
+  async create(productDto: ProductDTO): Promise<ProductDTO> {
+    const product = this.productRepository.create(productDto);
+    await this.productRepository.save(product);
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+    };
+  }
+}
+```
+
+### 주요 메서드
+`ProductRepository`가 상속하는 `Repository` 클래스는 다음과 같은 메서드를 제공합니다.
+
+- `find`: 모든 엔티티 검색
+- `findOne`: 하나의 엔티티 검색 (조건으로)
+- `save`: 엔티티 저장 또는 업데이트
+- `delete`: 엔티티 삭제
+
+### `EntityRepository`와 `TypeOrmModule` 연동
+`EntityRepository`는 특정 엔티티에 대한 레포지토리를 정의하는 데 사용됩니다. 이를 사용하기 위해서는 `TypeOrmModule`의 `forFeature` 메서드를 통해 모듈에 등록해야 합니다.
+
+**`products.module.ts`**
+```typescript
+// src/products/products.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProductsController } from './products.controller';
+import { ProductsService } from './products.service';
+import { ProductRepository } from './products.repository';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([ProductRepository])],
+  controllers: [ProductsController],
+  providers: [ProductsService],
+})
+export class ProductsModule {}
+```
+
+### 결론
+`ProductRepository` 클래스에 코드가 없더라도, TypeORM의 `Repository` 클래스를 상속하기 때문에 이미 내장된 CRUD 메서드를 사용할 수 있습니다. 이를 통해 개발자는 추가적인 구현 없이도 데이터베이스에 접근하고, 데이터를 관리할 수 있습니다.
+
 #### **`products.service.ts`** (Service)
 서비스 계층에서 레포지토리를 사용해 비즈니스 로직을 구현합니다.
 
