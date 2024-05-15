@@ -75,14 +75,15 @@ export class ProductRepository extends Repository<Product> {}
 ```
 <details>
    <summary>class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?</summary>
-|```nestjs
-|// src/products/products.repository.ts
-|import { Repository, EntityRepository } from 'typeorm';
-|import { Product } from './product.entity';
-|
-|@EntityRepository(Product)
-|export class ProductRepository extends Repository<Product> {}
-|```
+
+```typescript
+// src/products/products.repository.ts
+import { Repository, EntityRepository } from 'typeorm';
+import { Product } from './product.entity';
+
+@EntityRepository(Product)
+export class ProductRepository extends Repository<Product> {}
+```
 |에서 class "ProductRepository" {}부분에 아무런 코드가 없는데도, 데이터베이스에 접속이 가능한건가?
 
 네, `ProductRepository` 클래스에 별다른 코드가 없더라도, NestJS와 TypeORM의 구조 덕분에 데이터베이스에 접근하여 데이터를 관리할 수 있습니다. 이는 TypeORM의 **자동 생성된 리포지토리 기능** 덕분입니다.
