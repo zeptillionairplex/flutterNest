@@ -19,7 +19,7 @@
      2. "환경 변수" 버튼을 클릭합니다.
      3. `JAVA_HOME`이라는 새로운 시스템 변수를 추가하고 값으로 `C:\Program Files\Android\Android Studio\jbr` 입력합니다.
      4. `PATH` 변수에 `;%JAVA_HOME%\bin`을 추가합니다.
-        <detail>
+<detail>
            <summary>`;%JAVA_HOME%\bin` 앞에 붙는 `;`의 의미와 `%JAVA_HOME%`를 붙이는 의미</summary>
             환경 변수 설정 시 `;%JAVA_HOME%\bin` 앞에 붙는 `;`의 의미와 `%JAVA_HOME%` 등 변수 사용에 대해 설명해 드리겠습니다.
 
@@ -68,7 +68,7 @@
                ```
             
             이렇게 하면 다음부터는 `%JAVA_HOME%\bin` 경로가 `PATH`에 포함되어 있어, Java 실행 파일을 어디서든 실행할 수 있습니다.
-        </detail>
+</detail>
 
 ### 단계 3: `flutter config` 업데이트
 1. `flutter`가 올바른 Java 경로를 인식하도록 `flutter config` 명령어를 사용합니다.
