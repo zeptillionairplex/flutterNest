@@ -1,3 +1,6 @@
+### Github 해결법
+1.[Windows 해결법](https://github.com/flutter/flutter/issues/118502#issuecomment-1383219790)  
+
 문제는 `flutter doctor`가 Android Studio에서 번들된 Java 버전을 찾을 수 없다고 보고하는 것입니다. Android Studio 내부의 `jbr` 폴더에 Java가 설치되어 있지만, `flutter doctor`는 이를 인식하지 못하는 것 같습니다. 이 문제를 해결하려면 다음 단계를 시도해 보세요.
 
 ### 단계 1: Android Studio 내부 JBR Java 버전 확인
