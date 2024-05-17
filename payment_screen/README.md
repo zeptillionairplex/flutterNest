@@ -23,6 +23,277 @@ $ npm install -g @nestjs/cli
   - MacOS: `brew install mysql`
   - Windows: [MySQL Installer](https://dev.mysql.com/downloads/installer/)
   - [Docker로 MySQL 사용](https://poiemaweb.com/docker-mysql)
+<details>
+  <summary>docker MySQL에 데이터베이스가 생성 안될때</summary>
+`typeorm`을 사용하여 NestJS 애플리케이션과 MySQL 데이터베이스를 Docker Compose로 동시에 실행하려는 경우, Docker Compose 설정 파일을 사용하면 쉽게 구성할 수 있습니다. 다음은 Docker Compose를 사용하여 MySQL과 NestJS 애플리케이션을 함께 실행하는 방법을 단계별로 설명하겠습니다.
+
+### 1. 프로젝트 구조
+프로젝트의 기본 구조는 다음과 같이 구성될 수 있습니다.
+
+```
+your-project/
+│
+├── src/
+│   └── app.module.ts
+├── .env
+├── docker-compose.yml
+├── Dockerfile
+└── package.json
+```
+
+### 2. `docker-compose.yml` 파일 작성
+
+먼저 `docker-compose.yml` 파일을 프로젝트 루트에 생성하고 아래 내용을 추가하세요.
+
+```yaml
+version: '3.8'
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: shopping_mall
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 1234
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_container
+    restart: always
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=shopping_mall
+    depends_on:
+      - mysql
+    ports:
+      - '3000:3000'
+
+volumes:
+  mysql_data:
+```
+
+### 3. `Dockerfile` 파일 작성
+
+프로젝트 루트에 `Dockerfile` 파일을 생성하고 다음 내용을 추가합니다.
+
+```Dockerfile
+# 베이스 이미지로 Node.js LTS 버전 사용
+FROM node:18
+
+# 작업 디렉토리 설정
+WORKDIR /usr/src/app
+
+# 패키지 설치를 위한 package.json과 package-lock.json 복사
+COPY package*.json ./
+
+# 패키지 설치
+RUN npm install
+
+# 애플리케이션 소스 복사
+COPY . .
+
+# Nest CLI 설치
+RUN npm install -g @nestjs/cli
+
+# 빌드
+RUN npm run build
+
+# 애플리케이션 실행
+CMD ["npm", "run", "start:dev"]
+```
+
+### 4. 환경 변수 설정 (`.env` 파일)
+
+루트 디렉터리에 `.env` 파일을 생성하고 다음 내용을 추가하세요.
+
+```env
+# MySQL 환경 변수
+DB_HOST=mysql
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=1234
+DB_DATABASE=shopping_mall
+```
+
+### 5. NestJS 설정 (`app.module.ts`)
+
+`src/app.module.ts` 파일에서 `TypeOrmModule` 설정을 업데이트하세요.
+
+```typescript
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProductModule } from './product/product.module';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+    }),
+    ProductModule,
+  ],
+})
+export class AppModule {}
+```
+
+### 6. `package.json` 스크립트 수정
+
+`package.json` 파일의 스크립트 부분을 다음과 같이 수정하세요.
+
+```json
+{
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "build": "nest build"
+  }
+}
+```
+
+### 7. Docker Compose로 실행
+
+이제 모든 설정이 완료되었습니다. Docker Compose를 사용하여 프로젝트를 실행하세요.
+
+```bash
+docker-compose up --build
+```
+
+이 명령이 실행된 후, MySQL 컨테이너와 NestJS 컨테이너가 동시에 작동하며, NestJS에서 MySQL과 연결하여 데이터베이스와 테이블을 생성할 수 있게 됩니다.
+
+### 문제 해결
+
+1. **포트 충돌 확인**: 다른 서비스가 이미 3306 또는 3000 포트를 사용하고 있는지 확인하세요.
+2. **로그 확인**: `docker-compose` 서비스의 로그를 확인하여 어떤 오류가 발생하는지 파악하세요.
+
+```bash
+docker-compose logs -f
+```
+
+3. **컨테이너 상태 확인**:
+컨테이너 상태를 확인하려면 다음과 같이 Docker 명령을 사용하세요.
+
+### 1. 컨테이너 상태 확인
+
+```bash
+docker-compose ps
+```
+
+이 명령을 사용하면 현재 실행 중인 컨테이너의 상태를 확인할 수 있습니다.
+
+### 2. 개별 컨테이너 상태 확인
+
+특정 컨테이너의 상태 및 로그를 확인하려면 `docker ps`로 컨테이너 ID를 확인한 후 다음 명령을 사용하세요.
+
+```bash
+docker logs <컨테이너_ID 또는 컨테이너_이름>
+```
+
+예를 들어, `mysql_container`의 로그를 확인하려면 다음과 같이 합니다.
+
+```bash
+docker logs mysql_container
+```
+
+`nestjs_container`의 로그는 다음과 같이 확인할 수 있습니다.
+
+```bash
+docker logs nestjs_container
+```
+
+### 3. 컨테이너 안으로 들어가기
+
+각 컨테이너 안으로 들어가서 직접 상태를 확인하려면 `docker exec` 명령을 사용하세요. 예를 들어, `mysql_container`에 들어가서 MySQL에 직접 접근하기 위해서는 다음과 같이 합니다.
+
+```bash
+docker exec -it mysql_container bash
+```
+
+그 후 MySQL에 로그인하려면 다음 명령을 사용합니다.
+
+```bash
+mysql -u root -p
+```
+
+그리고 MySQL 비밀번호를 입력한 후, 데이터베이스 및 테이블을 확인할 수 있습니다.
+
+### 4. MySQL 데이터베이스 및 테이블 확인
+
+MySQL에 로그인한 후 데이터베이스와 테이블을 확인하세요.
+
+```sql
+SHOW DATABASES;
+USE shopping_mall;
+SHOW TABLES;
+```
+
+### 5. NestJS 및 TypeORM 오류 확인
+
+NestJS 컨테이너의 로그에서 `typeorm` 관련 오류가 발생하는지 확인하세요. 특히, `typeorm` 설정 파일이 `.env` 파일의 환경 변수를 정확히 읽어올 수 있도록 설정되어 있는지 확인해야 합니다.
+
+### 6. 다른 문제 해결 방법
+
+1. **네트워크 문제**: `nestjs` 컨테이너에서 MySQL에 연결할 수 있는지 확인하세요.
+
+   ```bash
+   docker exec -it nestjs_container bash
+   ```
+
+   안에서 `mysql` 컨테이너로 핑을 보내보세요.
+
+   ```bash
+   ping mysql
+   ```
+
+   또는 MySQL 연결을 테스트하세요.
+
+   ```bash
+   mysql -h mysql -u root -p
+   ```
+
+2. **MySQL 초기화 문제**: MySQL 컨테이너가 완전히 초기화되기 전에 `nestjs` 애플리케이션이 연결을 시도하는 경우가 있습니다. 이 경우 `depends_on` 옵션을 사용해도 문제가 해결되지 않을 수 있으므로 `wait-for-it` 또는 `wait-for`와 같은 스크립트를 사용하여 MySQL이 준비될 때까지 NestJS가 기다리도록 할 수 있습니다.
+
+   `nestjs` 컨테이너의 `Dockerfile`에 `wait-for`를 설치하는 예제입니다.
+
+   ```Dockerfile
+   # Install wait-for-it
+   RUN apt-get update && apt-get install -y netcat
+   COPY wait-for-it.sh /usr/src/app/wait-for-it.sh
+   RUN chmod +x /usr/src/app/wait-for-it.sh
+   ```
+
+   그런 다음 `CMD` 또는 `ENTRYPOINT`를 다음과 같이 수정하세요.
+
+   ```Dockerfile
+   CMD ["./wait-for-it.sh", "mysql:3306", "--", "npm", "run", "start:dev"]
+   ```
+
+`wait-for-it.sh` 스크립트는 [여기](https://github.com/vishnubob/wait-for-it)에서 다운로드할 수 있습니다.
+
+### 결론
+
+위의 단계를 따라가면서 로그를 확인하고, 네트워크 및 환경 변수 관련 문제를 점검하면 MySQL과 NestJS가 정상적으로 작동하도록 설정할 수 있을 것입니다.
+</details> 
 
 **3. Nest.js 프로젝트 생성 및 MySQL 연결**
 - 프로젝트 생성
