@@ -271,6 +271,90 @@ class Product {
 ```bash
 $ flutter pub run build_runner build
 ```
+<details>
+  <summary>`.g.dart` 파일이 생성되지 않는 문제 해결 방법</summary>
+  `.g.dart` 파일이 생성되지 않는 문제는 주로 `build_runner`와 `json_serializable` 패키지 설정 오류 또는 의존성 누락에서 발생합니다. 해결 방법은 다음과 같습니다:
+
+### 1. `pubspec.yaml` 파일 설정
+`build_runner`와 `json_serializable` 패키지를 `dev_dependencies`에 추가합니다.
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.5
+  http:
+  json_annotation: ^4.8.0
+  flutter_dotenv: ^5.0.2
+  fluttertoast: ^8.2.1
+
+dev_dependencies:
+  build_runner: ^2.3.3
+  json_serializable: ^6.6.1
+```
+
+### 2. `build_runner` 실행
+여기서는 `flutter pub run`을 사용하여 `build_runner`를 실행합니다.
+
+#### 터미널 명령어
+터미널에서 아래 명령어를 실행하세요.
+
+```bash
+flutter pub get
+flutter pub run build_runner build
+```
+
+### 3. `.g.dart` 파일 재생성
+위 명령어로도 문제가 해결되지 않는다면, `.dart_tool` 폴더와 `build` 폴더를 삭제한 후 다시 `build_runner`를 실행해보세요.
+
+#### 캐시 및 빌드 폴더 삭제 후 재생성
+1. `.dart_tool`과 `build` 폴더를 삭제하세요.
+2. 다음 명령어를 실행하세요.
+
+```bash
+flutter pub get
+flutter pub run build_runner clean
+flutter pub run build_runner build
+```
+
+### 4. `product.dart` 파일 예제
+아래 예시처럼 `json_serializable` 관련 어노테이션을 사용합니다.
+
+```dart
+// lib/models/product.dart
+import 'package:json_annotation/json_annotation.dart';
+
+part 'product.g.dart';
+
+@JsonSerializable()
+class Product {
+  int? id;
+  String name;
+  double price;
+  String description;
+  String imageUrl;
+
+  Product({
+    this.id,
+    required this.name,
+    required this.price,
+    required this.description,
+    required this.imageUrl,
+  });
+
+  factory Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProductToJson(this);
+}
+```
+
+### 문제 해결 팁
+- **버전 호환성 문제**: `build_runner`와 `json_serializable` 버전 간의 호환성 문제가 발생할 수 있으므로, 사용 중인 Flutter 버전에 맞는 최신 버전을 사용하세요.
+- **어노테이션 오류**: 클래스에 `@JsonSerializable()` 어노테이션을 정확히 사용했는지 확인하세요.
+- **터미널 경로 확인**: 터미널에서 프로젝트의 루트 디렉토리로 이동한 후 명령어를 실행하세요.
+
+이 과정을 따라도 `.g.dart` 파일이 생성되지 않는다면, 오류 메시지를 공유해주시면 추가적인 문제 해결을 도와드리겠습니다.
+</details>
 
 **6. API 서비스 작성**
 - `lib/services` 디렉토리 생성 후 `product_service.dart` 파일 작성:
