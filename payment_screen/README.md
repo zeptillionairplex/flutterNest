@@ -414,7 +414,160 @@ export class ProductService {
 ```
 
 <details>
-  <summary> </summary>
+  <summary>docker-compose로 데이터베이스는 생성되었지만 테이블은 생성되지 않는 문제 해결방법</summary>
+구조를 살펴본 결과, 몇 가지 문제를 파악할 수 있습니다. 테이블이 생성되지 않는 문제는 여러 가지 원인에 의해 발생할 수 있습니다. 가능한 원인을 하나씩 확인하고 해결해 보겠습니다.
+
+### 1. `typeorm` 설정 확인
+아래의 `typeorm` 설정을 사용하고 있는 것으로 보입니다.
+
+```typescript
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+    }),
+    ProductModule,
+  ],
+})
+export class AppModule {}
+```
+
+#### 문제점 분석
+1. `entities` 경로가 잘못되었거나, 엔티티 파일이 `__dirname` 경로에 없을 수 있습니다.
+2. `synchronize` 옵션이 `true`로 설정되어 있어야 테이블이 자동으로 생성됩니다.
+3. `ProductModule`에 엔티티가 제대로 포함되어 있는지 확인해야 합니다.
+
+### 2. `nestjs` 코드 수정
+1. `AppModule`에서 `ProductRepository`를 `ProductModule`에 포함하기 위해, `ProductModule`을 제대로 구성해야 합니다.
+
+```typescript
+// src/product/product.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Product } from './product.entity';
+import { ProductRepository } from './product.repository';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([Product])],
+  providers: [ProductRepository],
+  exports: [TypeOrmModule],
+})
+export class ProductModule {}
+```
+
+2. `AppModule`에서 `ProductModule`을 가져옵니다.
+
+```typescript
+// src/app.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProductModule } from './product/product.module';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+    }),
+    ProductModule,
+  ],
+})
+export class AppModule {}
+```
+
+### 3. `docker-compose.yml` 파일의 문제 확인
+1. `Dockerfile`을 확인합니다.
+2. `.env` 파일이 제대로 동작하는지 확인합니다.
+
+#### 3.1 `.env` 파일
+`.env` 파일이 `nestjs` 서비스의 컨테이너에 올바르게 적용되었는지 확인합니다.
+
+```env
+// .env
+DB_HOST=mysql
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=1234
+DB_DATABASE=shopping_mall
+```
+
+#### 3.2 `Dockerfile`
+`nestjs` 서비스의 `Dockerfile`을 다음과 같이 작성합니다.
+
+```Dockerfile
+# Dockerfile
+FROM node:16
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+CMD ["npm", "run", "start:dev"]
+```
+
+#### 3.3 `docker-compose.yml` 파일 확인
+`docker-compose.yml` 파일을 확인하여 환경 변수가 제대로 전달되고 있는지 확인합니다.
+
+```yaml
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0.33
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: shopping_mall
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_container
+    restart: always
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=shopping_mall
+    depends_on:
+      - mysql
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+
+volumes:
+  mysql_data:
+```
+
 ### 4. 전체 재빌드 및 실행
 
 `docker-compose`를 다시 빌드하고 실행하여 동작을 확인합니다.
