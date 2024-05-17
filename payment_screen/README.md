@@ -143,7 +143,7 @@ export class ProductService {
 ```
 <details>
 <summary>Type 'number' has no properties in common with type 'FindOneOptions'.ts(2559) 해결방법</summary>  
-에러 메시지 Type 'number' has no properties in common with type 'FindOneOptions<Product>'.ts(2559)'는 findOne 메서드에 넘겨주는 매개변수가 number 타입인 것에 문제가 있다는 것을 의미합니다. findOne 메서드는 TypeORM의 0.3.x 버전에서 FindOneOptions나 FindOptionsWhere와 같은 객체를 필요로 합니다.
+에러 메시지 Type `number` has no properties in common with type `FindOneOptions<Product>.ts(2559)`는 findOne 메서드에 넘겨주는 매개변수가 number 타입인 것에 문제가 있다는 것을 의미합니다. findOne 메서드는 TypeORM의 0.3.x 버전에서 `FindOneOptions`나 `FindOptionsWhere`와 같은 객체를 필요로 합니다.
 
 이전 TypeORM 버전 0.2.x에서는 findOne 메서드가 단일 ID를 받아서 사용했지만, 0.3.x부터는 옵션 객체를 필요로 하게 되었습니다.
 
