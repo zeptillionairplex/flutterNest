@@ -413,6 +413,117 @@ export class ProductService {
 }
 ```
 <details>
+<details>
+  <summary></summary>
+### 4. 전체 재빌드 및 실행
+
+`docker-compose`를 다시 빌드하고 실행하여 동작을 확인합니다.
+
+1. 기존 컨테이너와 볼륨을 정리합니다.
+
+```bash
+docker-compose down -v
+```
+
+2. `docker-compose`를 다시 빌드하고 실행합니다.
+
+```bash
+docker-compose up --build
+```
+
+### 5. 컨테이너 상태 및 로그 확인
+
+`nestjs` 컨테이너의 로그를 확인하여 오류 메시지가 없는지 확인합니다.
+
+```bash
+docker logs nestjs_container
+```
+
+컨테이너가 제대로 실행되고 있는지 확인합니다.
+
+```bash
+docker ps
+```
+
+### 6. 데이터베이스 확인
+
+`mysql` 컨테이너 내부에 접속하여 `shopping_mall` 데이터베이스에 테이블이 생성되었는지 확인합니다.
+
+1. `mysql_container`에 접속합니다.
+
+```bash
+docker exec -it mysql_container mysql -u root -p
+```
+
+2. 비밀번호를 입력하고 `shopping_mall` 데이터베이스로 이동합니다.
+
+```sql
+mysql> USE shopping_mall;
+```
+
+3. 테이블 목록을 확인합니다.
+
+```sql
+mysql> SHOW TABLES;
+```
+
+`Product` 엔티티에 대응하는 테이블이 생성되어 있어야 합니다.
+
+### 7. 문제 해결을 위한 추가 확인 사항
+
+1. **엔티티 파일 경로**: `typeorm` 설정에서 `entities` 경로가 올바른지 확인합니다.
+   - 예: `entities: [__dirname + '/**/*.entity{.ts,.js}']`
+
+2. **환경 변수 확인**: `nestjs` 컨테이너 내에서 환경 변수가 제대로 로드되었는지 확인합니다.
+   - `docker exec -it nestjs_container printenv DB_HOST`
+
+3. **TypeORM 디버그 로그 활성화**: `TypeOrmModule.forRoot` 설정에서 `logging: true`를 추가하여 디버그 로그를 확인합니다.
+
+```typescript
+TypeOrmModule.forRoot({
+  type: 'mysql',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT, 10),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  synchronize: true,
+  logging: true, // 추가
+}),
+```
+
+4. **네스트 애플리케이션 디버그 로그 활성화**: `main.ts`에서 `Logging`을 활성화합니다.
+
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+5. 로그를 확인하여 문제의 원인을 식별하고, 오류 메시지를 기반으로 문제를 해결합니다.
+
+### 8. 추가 문제 해결 방법
+
+- **`synchronize` 대신 마이그레이션 사용**: `synchronize: true` 대신 마이그레이션을 사용하여 테이블을 관리합니다.
+
+- **Docker Compose 의존성 관리**: `depends_on`으로 서비스 간 의존성을 지정하지만, 서비스가 완전히 준비될 때까지 기다리지 않으므로, `wait-for-it` 또는 `wait-for-x` 같은 도구를 사용하여 데이터베이스에 연결할 수 있을 때까지 기다리도록 설정합니다.
+
+```yaml
+    command: ["wait-for-it", "mysql:3306", "--", "npm", "run", "start:dev"]
+```
+
+`wait-for-it` 스크립트를 컨테이너에 복사하고 실행합니다.
+
+### 결론
+
+위 단계를 통해 문제를 확인하고 해결할 수 있을 것입니다. 만약 그래도 문제가 해결되지 않는다면, `docker-compose` 로그와 `nestjs` 컨테이너의 로그를 확인하여 문제의 원인을 파악하는 것이 중요합니다.
+</details>
 <summary>Type 'number' has no properties in common with type 'FindOneOptions'.ts(2559) 해결방법</summary>  
 에러 메시지 Type `number` has no properties in common with type `FindOneOptions<Product>.ts(2559)`는 findOne 메서드에 넘겨주는 매개변수가 number 타입인 것에 문제가 있다는 것을 의미합니다. findOne 메서드는 TypeORM의 0.3.x 버전에서 `FindOneOptions`나 `FindOptionsWhere`와 같은 객체를 필요로 합니다.
 
