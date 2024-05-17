@@ -46,17 +46,16 @@ your-project/
 먼저 `docker-compose.yml` 파일을 프로젝트 루트에 생성하고 아래 내용을 추가하세요.
 
 ```yaml
+# docker-compose up --build
 version: '3.8'
 services:
   mysql:
-    image: mysql:latest
+    image: mysql:8.0.33
     container_name: mysql_container
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: shopping_mall
-      MYSQL_USER: root
-      MYSQL_PASSWORD: 1234
     ports:
       - '3306:3306'
     volumes:
