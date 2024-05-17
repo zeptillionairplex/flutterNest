@@ -292,127 +292,7 @@ NestJS 컨테이너의 로그에서 `typeorm` 관련 오류가 발생하는지 �
 ### 결론
 
 위의 단계를 따라가면서 로그를 확인하고, 네트워크 및 환경 변수 관련 문제를 점검하면 MySQL과 NestJS가 정상적으로 작동하도록 설정할 수 있을 것입니다.
-</details> 
-
-**3. Nest.js 프로젝트 생성 및 MySQL 연결**
-- 프로젝트 생성
-```bash
-$ nest new shopping-mall-backend
-```
-- 프로젝트 디렉토리로 이동
-```bash
-$ cd shopping-mall-backend
-```
-- MySQL 데이터베이스 연결을 위한 TypeORM 설치
-```bash
-$ npm install --save @nestjs/typeorm typeorm mysql2
-```
-
-### 백엔드 코드 작성
-**1. `src/app.module.ts`에서 MySQL 연결 설정**
-```typescript
-// src/app.module.ts
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductModule } from './product/product.module';
-
-@Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'your_password',
-      database: 'shopping_mall',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
-    ProductModule,
-  ],
-})
-export class AppModule {}
-```
-
-**2. 상품(Product) 모듈 생성**
-```bash
-$ nest generate module product
-$ nest generate service product
-$ nest generate controller product
-```
-
-**3. 상품 엔티티(Entity) 생성**
-```typescript
-// src/product/product.entity.ts
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-
-@Entity()
-export class Product {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  name: string;
-
-  @Column('decimal')
-  price: number;
-
-  @Column()
-  description: string;
-
-  @Column()
-  imageUrl: string;
-}
-```
-
-**4. 상품 레포지토리(Repository) 생성**
-```typescript
-// src/product/product.repository.ts
-import { EntityRepository, Repository } from 'typeorm';
-import { Product } from './product.entity';
-
-@EntityRepository(Product)
-export class ProductRepository extends Repository<Product> {}
-```
-
-**5. 상품 서비스(Service) 구현**
-```typescript
-// src/product/product.service.ts
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Product } from './product.entity';
-
-@Injectable()
-export class ProductService {
-  constructor(
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
-  ) {}
-
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
-  }
-
-  async findOne(id: number): Promise<Product> {
-    return this.productRepository.findOne({ where: { id } });
-  }
-
-  async create(product: Product): Promise<Product> {
-    return this.productRepository.save(product);
-  }
-
-  async update(id: number, product: Product): Promise<Product> {
-    await this.productRepository.update(id, product);
-    return this.productRepository.findOne({ where: { id } });
-  }
-
-  async delete(id: number): Promise<void> {
-    await this.productRepository.delete(id);
-  }
-}
-```
-
+</details>  
 <details>
   <summary>docker-compose로 데이터베이스는 생성되었지만 테이블은 생성되지 않는 문제 해결방법</summary>
 구조를 살펴본 결과, 몇 가지 문제를 파악할 수 있습니다. 테이블이 생성되지 않는 문제는 여러 가지 원인에 의해 발생할 수 있습니다. 가능한 원인을 하나씩 확인하고 해결해 보겠습니다.
@@ -677,6 +557,126 @@ bootstrap();
 
 위 단계를 통해 문제를 확인하고 해결할 수 있을 것입니다. 만약 그래도 문제가 해결되지 않는다면, `docker-compose` 로그와 `nestjs` 컨테이너의 로그를 확인하여 문제의 원인을 파악하는 것이 중요합니다.
 </details>
+
+**3. Nest.js 프로젝트 생성 및 MySQL 연결**
+- 프로젝트 생성
+```bash
+$ nest new shopping-mall-backend
+```
+- 프로젝트 디렉토리로 이동
+```bash
+$ cd shopping-mall-backend
+```
+- MySQL 데이터베이스 연결을 위한 TypeORM 설치
+```bash
+$ npm install --save @nestjs/typeorm typeorm mysql2
+```
+
+### 백엔드 코드 작성
+**1. `src/app.module.ts`에서 MySQL 연결 설정**
+```typescript
+// src/app.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProductModule } from './product/product.module';
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: 'your_password',
+      database: 'shopping_mall',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+    }),
+    ProductModule,
+  ],
+})
+export class AppModule {}
+```
+
+**2. 상품(Product) 모듈 생성**
+```bash
+$ nest generate module product
+$ nest generate service product
+$ nest generate controller product
+```
+
+**3. 상품 엔티티(Entity) 생성**
+```typescript
+// src/product/product.entity.ts
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity()
+export class Product {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column('decimal')
+  price: number;
+
+  @Column()
+  description: string;
+
+  @Column()
+  imageUrl: string;
+}
+```
+
+**4. 상품 레포지토리(Repository) 생성**
+```typescript
+// src/product/product.repository.ts
+import { EntityRepository, Repository } from 'typeorm';
+import { Product } from './product.entity';
+
+@EntityRepository(Product)
+export class ProductRepository extends Repository<Product> {}
+```
+
+**5. 상품 서비스(Service) 구현**
+```typescript
+// src/product/product.service.ts
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Product } from './product.entity';
+
+@Injectable()
+export class ProductService {
+  constructor(
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+  ) {}
+
+  async findAll(): Promise<Product[]> {
+    return this.productRepository.find();
+  }
+
+  async findOne(id: number): Promise<Product> {
+    return this.productRepository.findOne({ where: { id } });
+  }
+
+  async create(product: Product): Promise<Product> {
+    return this.productRepository.save(product);
+  }
+
+  async update(id: number, product: Product): Promise<Product> {
+    await this.productRepository.update(id, product);
+    return this.productRepository.findOne({ where: { id } });
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.productRepository.delete(id);
+  }
+}
+```
+
 <details>
 <summary>Type 'number' has no properties in common with type 'FindOneOptions'.ts(2559) 해결방법</summary>  
 에러 메시지 Type `number` has no properties in common with type `FindOneOptions<Product>.ts(2559)`는 findOne 메서드에 넘겨주는 매개변수가 number 타입인 것에 문제가 있다는 것을 의미합니다. findOne 메서드는 TypeORM의 0.3.x 버전에서 `FindOneOptions`나 `FindOptionsWhere`와 같은 객체를 필요로 합니다.
