@@ -412,9 +412,9 @@ export class ProductService {
   }
 }
 ```
+
 <details>
-<details>
-  <summary></summary>
+  <summary> </summary>
 ### 4. 전체 재빌드 및 실행
 
 `docker-compose`를 다시 빌드하고 실행하여 동작을 확인합니다.
@@ -524,6 +524,7 @@ bootstrap();
 
 위 단계를 통해 문제를 확인하고 해결할 수 있을 것입니다. 만약 그래도 문제가 해결되지 않는다면, `docker-compose` 로그와 `nestjs` 컨테이너의 로그를 확인하여 문제의 원인을 파악하는 것이 중요합니다.
 </details>
+<details>
 <summary>Type 'number' has no properties in common with type 'FindOneOptions'.ts(2559) 해결방법</summary>  
 에러 메시지 Type `number` has no properties in common with type `FindOneOptions<Product>.ts(2559)`는 findOne 메서드에 넘겨주는 매개변수가 number 타입인 것에 문제가 있다는 것을 의미합니다. findOne 메서드는 TypeORM의 0.3.x 버전에서 `FindOneOptions`나 `FindOptionsWhere`와 같은 객체를 필요로 합니다.
 
