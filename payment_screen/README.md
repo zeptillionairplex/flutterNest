@@ -22,6 +22,7 @@ $ npm install -g @nestjs/cli
 - MySQL 설치
   - MacOS: `brew install mysql`
   - Windows: [MySQL Installer](https://dev.mysql.com/downloads/installer/)
+  - [Docker로 MySQL 사용](https://poiemaweb.com/docker-mysql)
 
 **3. Nest.js 프로젝트 생성 및 MySQL 연결**
 - 프로젝트 생성
