@@ -277,7 +277,7 @@ NestJS 컨테이너의 로그에서 `typeorm` 관련 오류가 발생하는지 �
 
    ```Dockerfile
    # Install wait-for-it
-   RUN apt-get update && apt-get install -y netcat
+   RUN apt-get update && apt-get install -y netcat-openbsd
    COPY wait-for-it.sh /usr/src/app/wait-for-it.sh
    RUN chmod +x /usr/src/app/wait-for-it.sh
    ```
