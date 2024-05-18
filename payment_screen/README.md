@@ -47,6 +47,7 @@ your-project/
 
 ```yaml
 # docker-compose up --build
+# docker-compose down -v
 version: '3.8'
 services:
   mysql:
@@ -78,6 +79,20 @@ services:
       - mysql
     ports:
       - '3000:3000'
+    volumes:
+      - .:/usr/src/app
+
+  ngrok:
+    image: wernight/ngrok
+    container_name: ngrok_container
+    restart: always
+    environment:
+      NGROK_AUTH: "28h5qEDWYTKGEUsMqJMv88F1ZU1_uuD8QRNfyvREQvJwV92a" # 여기에 Ngrok 인증 토큰을 넣으세요
+      NGROK_PORT: "nestjs:3000"
+    depends_on:
+      - nestjs
+    ports:
+      - '4040:4040'
 
 volumes:
   mysql_data:
@@ -100,6 +115,16 @@ COPY package*.json ./
 # 패키지 설치
 RUN npm install
 
+# Install wait-for-it
+RUN apt-get update && apt-get install -y netcat-openbsd jq
+
+COPY wait-for-it.sh /usr/src/app/wait-for-it.sh
+RUN chmod +x /usr/src/app/wait-for-it.sh
+
+# Ngrok URL 출력 스크립트 복사
+COPY get_ngrok_url.sh /usr/src/app/get_ngrok_url.sh
+RUN chmod +x /usr/src/app/get_ngrok_url.sh
+
 # 애플리케이션 소스 복사
 COPY . .
 
@@ -110,7 +135,39 @@ RUN npm install -g @nestjs/cli
 RUN npm run build
 
 # 애플리케이션 실행
-CMD ["npm", "run", "start:dev"]
+# CMD ["sh", "-c", "./wait-for-it.sh mysql:3306 -- ./get_ngrok_url.sh && npm run start:dev"]
+CMD ["./wait-for-it.sh", "mysql:3306", "--", "npm", "run", "start:dev", "&", "./get_ngrok_url.sh"]
+
+# 앱 노출 포트
+EXPOSE 3000
+```
+**tsconfig.json**
+```typescript
+// shopping-mall-backend/tsconfig.json
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "strictPropertyInitialization": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
 ```
 
 ### 4. 환경 변수 설정 (`.env` 파일)
@@ -169,8 +226,30 @@ export class AppModule {}
   }
 }
 ```
+### 7. shopping-mall-backend/get_ngrok_url.sh 파일 생성
+```shell
+#!/bin/bash
 
-### 7. Docker Compose로 실행
+# Ngrok 인증 토큰 설정
+export NGROK_AUTHTOKEN="28h5qEDWYTKGEUsMqJMv88F1ZU1_uuD8QRNfyvREQvJwV92a" # 여기에 ngrok 인증 토큰을 넣으세요
+
+# 설정된 토큰을 사용하여 ngrok 인증
+ngrok config add-authtoken $NGROK_AUTHTOKEN
+
+# ngrok을 백그라운드에서 포트 3000에 대해 실행
+nohup ngrok http 3000 &
+
+# Wait for ngrok to start
+sleep 10
+
+# Fetch the public URL from ngrok API
+NGROK_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+
+# Print the URL
+echo "Ngrok URL: $NGROK_URL"
+```
+
+### 8. Docker Compose로 실행
 
 이제 모든 설정이 완료되었습니다. Docker Compose를 사용하여 프로젝트를 실행하세요.
 
@@ -576,26 +655,43 @@ $ npm install --save @nestjs/typeorm typeorm mysql2
 **1. `src/app.module.ts`에서 MySQL 연결 설정**
 ```typescript
 // src/app.module.ts
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProductModule } from './product/product.module';
+import { NgrokService } from './ngrok/ngrok.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'your_password',
-      database: 'shopping_mall',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true, // 모든 모듈에서 전역적으로 사용 가능
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true, // 개발 환경에서만 사용하세요. 프로덕션에서는 false로 설정하세요.
+        logging: true,
+      }),
     }),
     ProductModule,
   ],
+  providers: [NgrokService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private readonly ngrokService: NgrokService) {}
+
+  async onModuleInit() {
+    await this.ngrokService.getNgrokUrl();
+  }
+}
 ```
 
 **2. 상품(Product) 모듈 생성**
@@ -644,36 +740,39 @@ export class ProductRepository extends Repository<Product> {}
 // src/product/product.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ProductRepository } from './product.repository';
 import { Product } from './product.entity';
+import { CreateProductDto } from './create-product.dto';
+import { UpdateProductDto } from './update-product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
-  ) {}
+    constructor(
+    @InjectRepository(ProductRepository)
+        private readonly productRepository: ProductRepository,
+    ) {}
 
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
-  }
+    async findAll(): Promise<Product[]> {
+        return await this.productRepository.find();
+    }
 
-  async findOne(id: number): Promise<Product> {
-    return this.productRepository.findOne({ where: { id } });
-  }
+    async findOne(id: number): Promise<Product> {
+        return await this.productRepository.findOne({ where: { id } });
+    }
 
-  async create(product: Product): Promise<Product> {
-    return this.productRepository.save(product);
-  }
+    async create(productDto: CreateProductDto): Promise<Product> {
+        const newProduct = this.productRepository.create(productDto);
+            return await this.productRepository.save(newProduct);
+    }
 
-  async update(id: number, product: Product): Promise<Product> {
-    await this.productRepository.update(id, product);
-    return this.productRepository.findOne({ where: { id } });
-  }
+    async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+        await this.productRepository.update(id, updateProductDto);
+            return await this.findOne(id);
+    }
 
-  async delete(id: number): Promise<void> {
-    await this.productRepository.delete(id);
-  }
+    async remove(id: number): Promise<void> {
+        await this.productRepository.delete(id);
+    }
 }
 ```
 
@@ -687,41 +786,90 @@ export class ProductService {
 findOne 메서드에 옵션 객체를 전달하도록 코드를 수정해야 합니다.
 </details>
 
+**create-product.dto.ts**
+```typescript
+// src/product/create-product.dto.ts
+export class CreateProductDto {
+    readonly name: string;
+    readonly price: number;
+    readonly description: string;
+    readonly imageUrl: string;
+}
+```
+
+**update-product.dto.ts**
+```typescript
+// src/product/update-product.dto.ts
+export class UpdateProductDto {
+    readonly name?: string;
+    readonly price?: number;
+    readonly description?: string;
+    readonly imageUrl?: string;
+}
+```
+**ngrok.service.ts**
+```typescript
+// src/ngrok/ngrok.service.ts
+import { Injectable, Logger } from '@nestjs/common';
+import axios from 'axios'; //npm install axios
+
+@Injectable()
+export class NgrokService {
+    private readonly logger = new Logger(NgrokService.name);
+
+    async getNgrokUrl(): Promise<void> {
+    try {
+        // const response = await axios.get('http://localhost:4040/api/tunnels');
+        const response = await axios.get('http://ngrok_container:4040/api/tunnels');
+        const publicUrl = response.data.tunnels[0].public_url;
+        this.logger.log(`Ngrok URL: ${publicUrl}`);
+    } catch (error) {
+            this.logger.error('Error fetching ngrok URL', error.toString());
+        }
+    }
+}
+```
+
 **6. 상품 컨트롤러(Controller) 구현**
 ```typescript
 // src/product/product.controller.ts
 import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { ProductService } from './product.service';
+import { CreateProductDto } from './create-product.dto';
+import { UpdateProductDto } from './update-product.dto';
 import { Product } from './product.entity';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+    constructor(private readonly productService: ProductService) {}
 
-  @Get()
-  async findAll(): Promise<Product[]> {
-    return this.productService.findAll();
-  }
+    @Get()
+    async findAll(): Promise<Product[]> {
+        return await this.productService.findAll();
+    }
 
-  @Get(':id')
-  async findOne(@Param('id') id: number): Promise<Product> {
-    return this.productService.findOne(id);
-  }
+    @Get(':id')
+    async findOne(@Param('id') id: number): Promise<Product> {
+        return await this.productService.findOne(id);
+    }
 
-  @Post()
-  async create(@Body() product: Product): Promise<Product> {
-    return this.productService.create(product);
-  }
+    @Post()
+    async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
+        return await this.productService.create(createProductDto);
+    }
 
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() product: Product): Promise<Product> {
-    return this.productService.update(id, product);
-  }
+    @Put(':id')
+    async update(
+    @Param('id') id: number,
+    @Body() updateProductDto: UpdateProductDto,
+    ): Promise<Product> {
+        return await this.productService.update(id, updateProductDto);
+    }
 
-  @Delete(':id')
-  async delete(@Param('id') id: number): Promise<void> {
-    return this.productService.delete(id);
-  }
+    @Delete(':id')
+    async remove(@Param('id') id: number): Promise<void> {
+        return await this.productService.remove(id);
+    }
 }
 ```
 
@@ -732,6 +880,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
+// import { Product } from './product.entity';
 import { ProductRepository } from './product.repository';
 
 @Module({
