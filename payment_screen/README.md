@@ -820,6 +820,9 @@ export class NgrokService {
     async getNgrokUrl(): Promise<void> {
     try {
         // const response = await axios.get('http://localhost:4040/api/tunnels');
+        // ngrok_container의 경우 docker-compose로 [mysql/shopping-mall/ngrok] docker image가 한대 묶여서
+        // 하나의 container안에 있고, ngrok docker의 이름이 "ngrok_container"이며, "localhost"가 아닌
+        // "ngrok_container"라고해야 에러가 발생하지 않는다.
         const response = await axios.get('http://ngrok_container:4040/api/tunnels');
         const publicUrl = response.data.tunnels[0].public_url;
         this.logger.log(`Ngrok URL: ${publicUrl}`);
