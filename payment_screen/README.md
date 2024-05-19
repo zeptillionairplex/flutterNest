@@ -87,7 +87,7 @@ services:
     container_name: ngrok_container
     restart: always
     environment:
-      NGROK_AUTH: "28h5qEDWYTKGEUsMqJMv88F1ZU1_uuD8QRNfyvREQvJwV92a" # 여기에 Ngrok 인증 토큰을 넣으세요
+      NGROK_AUTH: "token" # 여기에 Ngrok 인증 토큰을 넣으세요
       NGROK_PORT: "nestjs:3000"
     depends_on:
       - nestjs
@@ -231,7 +231,7 @@ export class AppModule {}
 #!/bin/bash
 
 # Ngrok 인증 토큰 설정
-export NGROK_AUTHTOKEN="28h5qEDWYTKGEUsMqJMv88F1ZU1_uuD8QRNfyvREQvJwV92a" # 여기에 ngrok 인증 토큰을 넣으세요
+export NGROK_AUTHTOKEN="token" # 여기에 ngrok 인증 토큰을 넣으세요
 
 # 설정된 토큰을 사용하여 ngrok 인증
 ngrok config add-authtoken $NGROK_AUTHTOKEN
