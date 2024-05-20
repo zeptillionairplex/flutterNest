@@ -768,3 +768,81 @@ project/
 ### 결론
 
 이 매뉴얼을 통해 Docker 이미지를 사용하여 서버와 앱을 간편하게 실행할 수 있는 서버리스 채팅 앱을 구축하는 방법을 배웠습니다. Docker Compose를 사용하여 백엔드와 프론트엔드를 각각 독립적인 컨테이너로 배포할 수 있으며, 이를 활용하여 다양한 환경에서 애플리케이션을 쉽게 배포할 수 있습니다.
+
+맞습니다, Flutter 앱을 Docker로 배포하는 것은 일반적으로 웹 애플리케이션을 배포할 때 사용됩니다. 그러나 모바일 앱의 경우 Docker를 사용하지 않고 직접 빌드하여 APK(Android) 또는 IPA(iOS) 파일을 생성하는 것이 일반적입니다.
+
+따라서, Docker를 사용하지 않고 Flutter 앱을 빌드하여 배포하는 과정을 설명하겠습니다.
+
+### 10. Flutter 빌드 및 배포
+
+#### 10.1 Android APK 빌드
+
+1. `chat_frontend` 디렉터리에서 APK 파일을 빌드합니다.
+
+```bash
+flutter build apk --release
+```
+
+2. `build/app/outputs/flutter-apk/app-release.apk`에 생성된 APK 파일을 확인합니다.
+
+#### 10.2 iOS IPA 빌드
+
+1. iOS 앱을 빌드하려면 macOS 환경에서 `chat_frontend` 디렉터리로 이동합니다.
+
+2. 다음 명령으로 iOS 앱을 빌드합니다.
+
+```bash
+flutter build ios --release
+```
+
+> **참고:** Apple 개발자 계정이 필요하며, 빌드된 앱을 테스트하려면 실제 기기에 배포하기 위해 Xcode 설정이 필요합니다.
+
+### 11. 결론
+
+위 과정을 통해 `chat-backend`는 Docker로 배포하고, `chat_frontend`는 Flutter로 직접 빌드하여 APK 또는 IPA 파일로 배포할 수 있습니다.
+
+이를 통해 완전한 서버리스 채팅 앱을 구축할 수 있습니다.
+
+### 최종 프로젝트 구조
+
+```
+project/
+├── chat-backend/
+│   ├── docker-compose.yaml
+│   ├── Dockerfile
+│   ├── gun-server.js
+│   ├── package.json
+│   ├── src/
+│   │   ├── app.module.ts
+│   │   ├── chat.gateway.ts
+│   │   ├── chat.service.ts
+│   │   └── main.ts
+└── chat_frontend/
+    ├── pubspec.yaml
+    └── lib/
+        └── main.dart
+```
+
+### 전체 실행 및 테스트
+
+1. `chat-backend` 디렉터리로 이동하여 다음 명령어로 Docker Compose를 실행합니다.
+
+```bash
+docker-compose up --build -d
+```
+
+2. `chat_frontend` 디렉터리에서 다음 명령어로 각각의 플랫폼에 맞게 앱을 빌드합니다.
+
+- Android APK 빌드:
+
+```bash
+flutter build apk --release
+```
+
+- iOS IPA 빌드:
+
+```bash
+flutter build ios --release
+```
+
+이제 빌드된 앱을 실제 기기에 설치하여 백엔드 서버와 통신하는 채팅 앱을 테스트할 수 있습니다.
