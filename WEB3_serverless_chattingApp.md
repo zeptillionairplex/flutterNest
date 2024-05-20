@@ -1,335 +1,304 @@
-웹3.0 기술을 사용하여 이더리움 없이 무료로 채팅 앱을 구축하기 위해서는 완전히 탈중앙화된 블록체인 기반 솔루션을 사용하지 않고, P2P 네트워크를 활용하는 방법이 있습니다. 이를 통해 사용자들은 서버를 거치지 않고 직접 통신할 수 있습니다.
+## 완벽한 서버리스 채팅 앱 구축 매뉴얼
 
-## P2P 기반 서버리스 채팅 앱 매뉴얼
+이 매뉴얼은 Web3.0 기술을 사용하여 서버 없이 작동하는 채팅 앱을 만드는 방법을 안내합니다. 개발에는 Flutter를 프론트엔드로, Nest.js를 백엔드로 사용하며, 데이터 교환에는 블록체인과 암호화 기술을 활용합니다.
 
-### 기술 개요
-- **프론트엔드:** Flutter
-- **백엔드:** Nest.js (데이터 중계/처리 없이 P2P 네트워크 연동)
-- **P2P 네트워크:** Libp2p (IPFS)
-- **지갑:** MetaMask (사용자 인증)
+### 1. 개요
 
-### 프로젝트 구조
-```
-chat-app/
-├── backend/
-│   └── nestjs/
-└── frontend/
-    └── flutter/
-```
+- **목표**: 서버를 거치지 않고 두 사람이 대화할 수 있는 채팅 앱 개발
+- **프론트엔드**: Flutter
+- **백엔드**: Nest.js
+- **기술 스택**:
+  - Flutter: 프론트엔드
+  - Nest.js: 백엔드 (Node.js 프레임워크)
+  - IPFS (InterPlanetary File System): 분산 파일 시스템
+  - Libp2p: P2P 통신 프로토콜
+  - Gun.js: 분산 데이터베이스
+  - ECC 암호화: 데이터 보호
 
-### 1. 준비 사항
-#### 1.1 Flutter 설치 및 구성
-1. [Flutter 설치 가이드](https://flutter.dev/docs/get-started/install)를 따라 Flutter를 설치합니다.
+### 2. 환경 설정
 
-#### 1.2 Nest.js 설치 및 구성
-1. Node.js를 설치합니다.
-2. 다음 명령어로 Nest.js CLI를 설치합니다.
+#### 2.1 Flutter
+
+Flutter 환경을 설정합니다.
+
 ```bash
+# Flutter 설치
+git clone https://github.com/flutter/flutter.git -b stable
+export PATH="$PATH:`pwd`/flutter/bin"
+
+# Flutter 의존성 설치
+flutter doctor
+```
+
+#### 2.2 Nest.js
+
+Nest.js 프로젝트를 생성하고 필요한 패키지를 설치합니다.
+
+```bash
+# Nest.js CLI 설치
 npm install -g @nestjs/cli
+
+# Nest.js 프로젝트 생성
+nest new chat-backend
+
+# Gun.js 및 기타 의존성 설치
+npm install gun node-fetch crypto-js
 ```
 
-#### 1.3 IPFS 및 Libp2p 설치
-1. IPFS를 설치합니다.
-```bash
-npm install -g ipfs
-```
+### 3. 블록체인 기반 백엔드 개발 (Nest.js)
 
-2. Libp2p를 설치합니다.
-```bash
-npm install libp2p
-```
+#### 3.1 Gun.js 기반 백엔드 구현
 
-### 2. 프로젝트 설정
-#### 2.1 백엔드 구성 (Nest.js)
-##### 2.1.1 Nest.js 프로젝트 생성
-```bash
-nestjs new p2p-chat-backend
-```
+`chat-backend/src/app.module.ts`:
 
-##### 2.1.2 의존성 설치
-```bash
-cd p2p-chat-backend
-npm install ipfs libp2p
-```
-
-##### 2.1.3 P2P 서비스 구현 `src/p2p/p2p.service.ts`
-```typescript
-import { Injectable } from '@nestjs/common';
-import { create } from 'ipfs-core';
-import Libp2p from 'libp2p';
-
-@Injectable()
-export class P2PService {
-  private ipfs: any;
-  private libp2p: any;
-
-  async init() {
-    // IPFS 노드 생성
-    this.ipfs = await create();
-    console.log('IPFS node is ready');
-
-    // Libp2p 노드 생성
-    this.libp2p = new Libp2p({
-      modules: {
-        transport: [],
-        streamMuxer: [],
-        connEncryption: [],
-      },
-    });
-    console.log('Libp2p node is ready');
-  }
-
-  async sendMessage(message: string) {
-    const { cid } = await this.ipfs.add(message);
-    return cid.toString();
-  }
-
-  async receiveMessage(cid: string) {
-    const data = await this.ipfs.cat(cid);
-    let content = '';
-
-    for await (const chunk of data) {
-      content += chunk.toString();
-    }
-
-    return content;
-  }
-}
-```
-
-##### 2.1.4 P2P 모듈 구성 `src/p2p/p2p.module.ts`
 ```typescript
 import { Module } from '@nestjs/common';
-import { P2PService } from './p2p.service';
+import { ChatService } from './chat.service';
+import { ChatGateway } from './chat.gateway';
 
 @Module({
-  providers: [P2PService],
-  exports: [P2PService],
-})
-export class P2PModule {}
-```
-
-##### 2.1.5 채팅 컨트롤러 구현 `src/p2p/p2p.controller.ts`
-```typescript
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
-import { P2PService } from './p2p.service';
-
-@Controller('p2p')
-export class P2PController {
-  constructor(private readonly p2pService: P2PService) {}
-
-  @Post('send')
-  async sendMessage(@Body('message') message: string) {
-    return { cid: await this.p2pService.sendMessage(message) };
-  }
-
-  @Get('receive')
-  async receiveMessage(@Query('cid') cid: string) {
-    return { message: await this.p2pService.receiveMessage(cid) };
-  }
-}
-```
-
-##### 2.1.6 메인 모듈에 P2P 모듈 추가 `src/app.module.ts`
-```typescript
-import { Module } from '@nestjs/common';
-import { P2PModule } from './p2p/p2p.module';
-
-@Module({
-  imports: [P2PModule],
+  providers: [ChatService, ChatGateway],
 })
 export class AppModule {}
 ```
 
-##### 2.1.7 서버 실행
-```bash
-npm run start
-```
+`chat-backend/src/chat.service.ts`:
 
-### 2.2 프론트엔드 구성 (Flutter)
-#### 2.2.1 Flutter 프로젝트 생성
-```bash
-flutter create p2p_chat
-```
+```typescript
+import { Injectable } from '@nestjs/common';
+import Gun from 'gun';
 
-#### 2.2.2 의존성 추가
-`pubspec.yaml`에 다음 의존성 추가:
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  http: ^0.13.3
-  provider: ^5.0.0
-```
+@Injectable()
+export class ChatService {
+  private gun = Gun({
+    peers: ['http://localhost:8765/gun'],
+    file: 'data',
+  });
 
-#### 2.2.3 모델 클래스 생성 `lib/models/message.dart`
-```dart
-class Message {
-  final String content;
-  final String cid;
+  private messages = this.gun.get('messages');
 
-  Message({required this.content, required this.cid});
-
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
-      content: json['message'],
-      cid: json['cid'] ?? '',
-    );
+  sendMessage(message: { id: string; text: string }) {
+    this.messages.set(message);
   }
 
-  Map<String, dynamic> toJson() {
-    return {'message': content, 'cid': cid};
+  onNewMessage(callback: (message: any) => void) {
+    this.messages.map().on(callback);
   }
 }
 ```
 
-#### 2.2.4 채팅 서비스 구현 `lib/services/chat_service.dart`
-```dart
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../models/message.dart';
+`chat-backend/src/chat.gateway.ts`:
 
-class ChatService {
-  static const String baseUrl = 'http://localhost:3000/p2p';
+```typescript
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { ChatService } from './chat.service';
+import { Server, Socket } from 'socket.io';
 
-  Future<Message> sendMessage(String content) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/send'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'message': content}),
-    );
+@WebSocketGateway()
+export class ChatGateway {
+  @WebSocketServer() server: Server;
 
-    if (response.statusCode == 200) {
-      return Message.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to send message');
-    }
+  constructor(private chatService: ChatService) {
+    this.chatService.onNewMessage((message) => {
+      this.server.emit('message', message);
+    });
   }
 
-  Future<Message> receiveMessage(String cid) async {
-    final response = await http.get(Uri.parse('$baseUrl/receive?cid=$cid'));
-
-    if (response.statusCode == 200) {
-      return Message.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to receive message');
-    }
+  @SubscribeMessage('message')
+  handleMessage(@MessageBody() message: { id: string; text: string }) {
+    this.chatService.sendMessage(message);
   }
 }
 ```
 
-#### 2.2.5 채팅 화면 구현 `lib/screens/chat_screen.dart`
+`chat-backend/src/main.ts`:
+
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useWebSocketAdapter(new IoAdapter(app));
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+`chat-backend/gun-server.js`:
+
+```javascript
+const Gun = require('gun');
+const express = require('express');
+const app = express();
+const port = 8765;
+
+app.use(Gun.serve);
+
+const server = app.listen(port, () => {
+  console.log(`Gun server listening on port ${port}`);
+});
+
+Gun({ web: server });
+```
+
+`package.json`에 "gun-server" 스크립트 추가:
+
+```json
+"scripts": {
+  "start": "node dist/main",
+  "gun-server": "node gun-server.js"
+}
+```
+
+### 4. Flutter 기반 프론트엔드 개발
+
+#### 4.1 Flutter 프로젝트 생성
+
+Flutter 프로젝트를 생성하고 필요한 의존성을 설치합니다.
+
+```bash
+# Flutter 프로젝트 생성
+flutter create chat_frontend
+
+# Gun.js 및 기타 의존성 설치
+cd chat_frontend
+flutter pub add gun
+flutter pub add socket_io_client
+```
+
+#### 4.2 Flutter 코드 작성
+
+`lib/main.dart`:
+
+### 4.2 Flutter 코드 작성
+
+`lib/main.dart`:
+
 ```dart
 import 'package:flutter/material.dart';
-import '../models/message.dart';
-import '../services/chat_service.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:gun/gun.dart';
 
-class ChatScreen extends StatefulWidget {
-  @override
-  _ChatScreenState createState() => _ChatScreenState();
+void main() {
+  runApp(const MyApp());
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  final _chatService = ChatService();
-  final _messageController = TextEditingController();
-  final _cidController = TextEditingController();
-  List<Message> _messages = [];
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-  Future<void> _sendMessage() async {
-    final content = _messageController.text;
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'Serverless Chat App',
+      home: ChatPage(),
+    );
+  }
+}
 
-    if (content.isEmpty) {
-      return;
-    }
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
 
-    try {
-      final message = await _chatService.sendMessage(content);
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final IO.Socket socket = IO.io('http://localhost:3000', <String, dynamic>{
+    'transports': ['websocket'],
+  });
+  final Gun gun = Gun();
+  final List<Map<String, String>> messages = [];
+  final TextEditingController controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Socket.io 메시지 수신
+    socket.on('connect', (_) {
+      print('Connected to server');
+    });
+
+    socket.on('message', (data) {
       setState(() {
-        _messages.add(message);
+        messages.add({'id': data['id'], 'text': data['text']});
       });
-      _messageController.clear();
-    } catch (e) {
-      print('Error sending message: $e');
-    }
+    });
+
+    // Gun.js 메시지 수신
+    gun.get('messages').map().on((data, key) {
+      setState(() {
+        messages.add({'id': key, 'text': data['text']});
+      });
+    });
   }
 
-  Future<void> _receiveMessage() async {
-    final cid = _cidController.text;
+  void sendMessage(String text) {
+    final message = {'id': UniqueKey().toString(), 'text': text};
 
-    if (cid.isEmpty) {
-      return;
-    }
+    // Socket.io로 메시지 전송
+    socket.emit('message', message);
 
-    try {
-      final message = await _chatService.receiveMessage(cid);
-      setState(() {
-        _messages.add(message);
-      });
-      _cidController.clear();
-    } catch (e) {
-      print('Error receiving message: $e');
-    }
+    // Gun.js로 메시지 전송
+    gun.get('messages').set(message);
+
+    setState(() {
+      messages.add(message);
+    });
+
+    controller.clear();
+  }
+
+  @override
+  void dispose() {
+    socket.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('P2P Chat'),
+        title: const Text('Serverless Chat App'),
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: _messages.length,
+              itemCount: messages.length,
               itemBuilder: (context, index) {
-                final message = _messages[index];
                 return ListTile(
-                  title: Text(message.content),
-                  subtitle: Text('CID: ${message.cid}'),
+                  title: Text(messages[index]['text']!),
                 );
               },
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
+            child: Row(
               children: [
-                TextField(
-                  controller: _messageController,
-                  decoration: InputDecoration(
-                    labelText: 'Enter your message',
-                    border: OutlineInputBorder(),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter your message',
+                    ),
                   ),
                 ),
-                SizedBox(height: 8.0),
-                ElevatedButton(
-                  onPressed: _sendMessage,
-                  child: Text('Send'),
-                ),
-                SizedBox(height: 8.0),
-                TextField(
-                  controller: _cidController,
-                  decoration: InputDecoration(
-                    labelText: 'CID to receive',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                ElevatedButton(
-                  onPressed: _receiveMessage,
-                  child: Text('Receive'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-```
-```dart
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {
+                    if (controller.text.isNotEmpty) {
+                      sendMessage(controller.text);
+                    }
+                  },
                 ),
               ],
             ),
@@ -341,40 +310,461 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 ```
 
-#### 2.2.6 메인 앱 구성 `lib/main.dart`
-```dart
-import 'package:flutter/material.dart';
-import 'screens/chat_screen.dart';
+### 5. 실행 및 테스트
 
-void main() {
-  runApp(P2PChatApp());
-}
+#### 5.1 백엔드 실행
 
-class P2PChatApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'P2P Chat',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: ChatScreen(),
-    );
-  }
-}
+1. `chat-backend` 디렉터리에서 Gun.js 서버 실행:
+
+```bash
+npm run gun-server
 ```
 
-### 2.2.7 Flutter 앱 실행
+2. Nest.js 백엔드 서버 실행:
+
+```bash
+npm run start
+```
+
+#### 5.2 프론트엔드 실행
+
+1. `chat_frontend` 디렉터리에서 Flutter 앱 실행:
+
 ```bash
 flutter run
 ```
 
-### 3. 결론
-이 매뉴얼은 P2P 네트워크 기반의 서버리스 채팅 애플리케이션을 구축하는 방법을 안내합니다. 이 솔루션은 Libp2p와 IPFS를 활용하여 메시지가 서버를 거치지 않고 직접 사용자 간에 전달되도록 설계되었습니다.
+### 6. 보안 및 암호화
 
-### 추가 개선 사항
-- **메시지 암호화:** 메시지를 IPFS에 저장하기 전에 암호화하여 프라이버시를 강화.
-- **사용자 인증 및 프로필:** 사용자의 지갑 주소 또는 P2P 식별자를 기반으로 프로필 및 닉네임을 생성.
-- **다중 채널 지원:** 여러 채팅 채널을 지원하여 다양한 주제별 대화 가능.
+#### 6.1 ECC (Elliptic Curve Cryptography) 암호화 적용
 
-이 매뉴얼을 통해 개발자들은 이더리움 없이도 완전히 무료로 서버리스 채팅 애플리케이션을 구축하는 방법을 배울 수 있습니다.
+`chat-backend/package.json`에 `elliptic` 및 `crypto-js` 의존성 추가:
+
+```bash
+npm install elliptic crypto-js
+```
+
+`decryptMessage` 메서드 및 암호화 적용을 마무리하고, 전체적인 코드를 업데이트하겠습니다.
+
+`chat-backend/src/chat.service.ts`:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import Gun from 'gun';
+import { ec as EC } from 'elliptic';
+import CryptoJS from 'crypto-js';
+
+const ec = new EC('curve25519');
+const keyPair = ec.genKeyPair();
+const publicKey = keyPair.getPublic('hex');
+const privateKey = keyPair.getPrivate('hex');
+
+@Injectable()
+export class ChatService {
+  private gun = Gun({
+    peers: ['http://localhost:8765/gun'],
+    file: 'data',
+  });
+
+  private messages = this.gun.get('messages');
+
+  encryptMessage(text: string): string {
+    const encrypted = CryptoJS.AES.encrypt(text, privateKey).toString();
+    return encrypted;
+  }
+
+  decryptMessage(encryptedText: string): string {
+    const decrypted = CryptoJS.AES.decrypt(encryptedText, privateKey).toString(CryptoJS.enc.Utf8);
+    return decrypted;
+  }
+
+  sendMessage(message: { id: string; text: string }) {
+    const encryptedMessage = this.encryptMessage(message.text);
+    this.messages.set({ id: message.id, text: encryptedMessage });
+  }
+
+  onNewMessage(callback: (message: any) => void) {
+    this.messages.map().on((data, key) => {
+      const decryptedMessage = this.decryptMessage(data.text);
+      callback({ id: key, text: decryptedMessage });
+    });
+  }
+}
+```
+
+`chat-backend/src/chat.gateway.ts`:
+
+```typescript
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { ChatService } from './chat.service';
+import { Server, Socket } from 'socket.io';
+
+@WebSocketGateway()
+export class ChatGateway {
+  @WebSocketServer() server: Server;
+
+  constructor(private chatService: ChatService) {
+    this.chatService.onNewMessage((message) => {
+      this.server.emit('message', message);
+    });
+  }
+
+  @SubscribeMessage('message')
+  handleMessage(@MessageBody() message: { id: string; text: string }) {
+    this.chatService.sendMessage(message);
+  }
+}
+```
+
+### 7. 프론트엔드 암호화 적용
+
+`lib/main.dart`에 암호화 기능을 추가합니다.
+
+먼저 `encrypt` 및 `decrypt` 기능을 위해 `encrypt` 패키지를 추가합니다.
+
+`pubspec.yaml`:
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  socket_io_client: ^2.0.0
+  gun: ^0.9.99993
+  encrypt: ^5.0.0
+```
+
+`encryptMessage` 및 `decryptMessage` 메서드를 작성하고, `sendMessage` 메서드에서 이를 활용하도록 코드를 완성하겠습니다.
+
+`lib/main.dart`:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:gun/gun.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'Serverless Chat App',
+      home: ChatPage(),
+    );
+  }
+}
+
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
+
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final IO.Socket socket = IO.io('http://localhost:3000', <String, dynamic>{
+    'transports': ['websocket'],
+  });
+  final Gun gun = Gun();
+  final List<Map<String, String>> messages = [];
+  final TextEditingController controller = TextEditingController();
+  final encrypt.Key key = encrypt.Key.fromUtf8('32characterslongsecretkey!');
+  final encrypt.IV iv = encrypt.IV.fromLength(16);
+  late final encrypt.Encrypter encrypter;
+
+  @override
+  void initState() {
+    super.initState();
+    encrypter = encrypt.Encrypter(encrypt.AES(key));
+
+    // Socket.io 메시지 수신
+    socket.on('connect', (_) {
+      print('Connected to server');
+    });
+
+    socket.on('message', (data) {
+      setState(() {
+        messages.add({'id': data['id'], 'text': decryptMessage(data['text'])});
+      });
+    });
+
+    // Gun.js 메시지 수신
+    gun.get('messages').map().on((data, key) {
+      setState(() {
+        messages.add({'id': key, 'text': decryptMessage(data['text'])});
+      });
+    });
+  }
+
+  String encryptMessage(String text) {
+    final encrypted = encrypter.encrypt(text, iv: iv);
+    return encrypted.base64;
+  }
+
+  String decryptMessage(String encryptedText) {
+    final decrypted = encrypter.decrypt64(encryptedText, iv: iv);
+    return decrypted;
+  }
+
+  void sendMessage(String text) {
+    final message = {
+      'id': UniqueKey().toString(),
+      'text': encryptMessage(text),
+    };
+
+    // Socket.io로 메시지 전송
+    socket.emit('message', message);
+
+    // Gun.js로 메시지 전송
+    gun.get('messages').set(message);
+
+    setState(() {
+      messages.add({'id': message['id'], 'text': text});
+    });
+
+    controller.clear();
+  }
+
+  @override
+  void dispose() {
+    socket.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Serverless Chat App'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(messages[index]['text']!),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter your message',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {
+                    if (controller.text.isNotEmpty) {
+                      sendMessage(controller.text);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### 8. 전체 실행 및 테스트
+
+#### 8.1 백엔드 실행
+
+1. `chat-backend` 디렉터리에서 Gun.js 서버 실행:
+
+```bash
+npm run gun-server
+```
+
+2. Nest.js 백엔드 서버 실행:
+
+```bash
+npm run start
+```
+
+#### 8.2 프론트엔드 실행
+
+1. `chat_frontend` 디렉터리에서 Flutter 앱 실행:
+
+```bash
+flutter run
+```
+
+### 9. 결론
+
+이 매뉴얼은 Web3.0 기술을 활용하여 서버 없이 두 사용자가 대화할 수 있는 완전한 서버리스 채팅 앱을 구축하는 방법을 안내합니다. Flutter로 프론트엔드를 구축하고, Nest.js 백엔드에서는 Gun.js와 암호화를 사용하여 메시지를 안전하게 교환합니다.
+
+### 9. 백엔드 Docker화
+
+#### 9.1 Dockerfile 작성
+
+`chat-backend` 디렉토리 내에 `Dockerfile`을 작성합니다.
+
+`chat-backend/Dockerfile`:
+
+```Dockerfile
+# Stage 1: Build the Nest.js application
+FROM node:16 AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+# Stage 2: Run the application
+FROM node:16
+
+WORKDIR /app
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+
+RUN npm install --only=production
+
+COPY gun-server.js ./
+
+EXPOSE 3000
+EXPOSE 8765
+
+CMD ["sh", "-c", "node gun-server.js & node dist/main.js"]
+```
+
+#### 9.2 docker-compose.yaml 작성
+
+`chat-backend` 디렉토리 내에 `docker-compose.yaml`을 작성합니다.
+
+`chat-backend/docker-compose.yaml`:
+
+```yaml
+version: '3.8'
+
+services:
+  chat-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "8765:8765"
+    environment:
+      - NODE_ENV=production
+```
+
+#### 9.3 Docker Compose 실행
+
+`chat-backend` 디렉터리로 이동하여 다음 명령어로 Docker Compose를 실행합니다.
+
+```bash
+docker-compose up --build -d
+```
+
+### 10. 프론트엔드 Docker화
+
+#### 10.1 Dockerfile 작성
+
+`chat_frontend` 디렉토리 내에 `Dockerfile`을 작성합니다.
+
+`chat_frontend/Dockerfile`:
+
+```Dockerfile
+# Use a Flutter Docker image to build the app
+FROM cirrusci/flutter:stable AS builder
+
+WORKDIR /app
+
+COPY . .
+
+RUN flutter build web
+
+# Stage 2: Serve the built app using an Nginx server
+FROM nginx:alpine
+
+COPY --from=builder /app/build/web /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### 10.2 docker-compose.yaml 작성
+
+`chat_frontend` 디렉토리 내에 `docker-compose.yaml`을 작성합니다.
+
+`chat_frontend/docker-compose.yaml`:
+
+```yaml
+version: '3.8'
+
+services:
+  chat-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+```
+
+#### 10.3 Docker Compose 실행
+
+`chat_frontend` 디렉터리로 이동하여 다음 명령어로 Docker Compose를 실행합니다.
+
+```bash
+docker-compose up --build -d
+```
+
+### 11. 전체 실행 및 테스트
+
+백엔드와 프론트엔드를 각각 Docker Compose로 실행한 후, 브라우저에서 `http://localhost:8080`에 접속하여 앱을 테스트합니다.
+
+### 전체 프로젝트 구조
+
+```
+project/
+├── chat-backend/
+│   ├── docker-compose.yaml
+│   ├── Dockerfile
+│   ├── gun-server.js
+│   ├── package.json
+│   ├── src/
+│   │   ├── app.module.ts
+│   │   ├── chat.gateway.ts
+│   │   ├── chat.service.ts
+│   │   └── main.ts
+└── chat_frontend/
+    ├── docker-compose.yaml
+    ├── Dockerfile
+    ├── pubspec.yaml
+    └── lib/
+        └── main.dart
+```
+
+### 결론
+
+이 매뉴얼을 통해 Docker 이미지를 사용하여 서버와 앱을 간편하게 실행할 수 있는 서버리스 채팅 앱을 구축하는 방법을 배웠습니다. Docker Compose를 사용하여 백엔드와 프론트엔드를 각각 독립적인 컨테이너로 배포할 수 있으며, 이를 활용하여 다양한 환경에서 애플리케이션을 쉽게 배포할 수 있습니다.
