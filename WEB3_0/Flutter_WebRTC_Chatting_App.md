@@ -229,4 +229,520 @@ void _createAnswer() async {
 2. **NAT 트래버설**: NAT 환경에서 P2P 연결을 성공적으로 이뤄내기 위한 TURN 서버 사용.
 3. **ICE 후보 교환**: 안정적인 연결을 위해 ICE 후보 정보를 교환하는 로직.
 
-추가 기능을 통해 완전히 서버 없는 P2P 채팅을 구현할 수 있습니다.
+Flutter 앱에서 서로 교환할 수 있는 QR 코드를 생성하고 읽을 수 있도록 QR 코드 생성 버튼과 스캔 기능을 추가해보겠습니다. 이를 위해 다음 라이브러리를 사용합니다:
+
+- **qr_flutter**: QR 코드를 생성하기 위한 라이브러리
+- **qr_code_scanner**: QR 코드를 스캔하기 위한 라이브러리
+
+### `pubspec.yaml` 업데이트
+**pubspec.yaml** 파일에 필요한 라이브러리를 추가합니다.
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_webrtc: ^0.9.23
+  qr_flutter: ^4.0.0
+  qr_code_scanner: ^1.0.0
+```
+
+### `lib/screens/chat_screen.dart` 수정
+**chat_screen.dart** 파일을 수정하여 QR 코드 생성 및 스캔 기능을 추가합니다.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({Key? key}) : super(key: key);
+
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final RTCConfiguration _config = {
+    'iceServers': [
+      {'urls': 'stun:stun.l.google.com:19302'}
+    ]
+  };
+
+  late RTCPeerConnection _peerConnection;
+  late RTCDataChannel _dataChannel;
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _messages = [];
+  String _localSDP = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeConnection();
+  }
+
+  Future<void> _initializeConnection() async {
+    _peerConnection = await createPeerConnection(_config);
+
+    // 데이터 채널 생성
+    _dataChannel = await _peerConnection.createDataChannel(
+      'chat',
+      RTCDataChannelInit(),
+    );
+
+    // 데이터 채널 수신 이벤트 핸들러
+    _dataChannel.onMessage = (RTCDataChannelMessage message) {
+      setState(() {
+        _messages.add('Peer: ${message.text}');
+      });
+    };
+
+    // ICE 후보 이벤트 핸들러
+    _peerConnection.onIceCandidate = (RTCIceCandidate candidate) {
+      print('ICE Candidate: ${candidate.candidate}');
+    };
+
+    // 데이터 채널 이벤트 핸들러
+    _peerConnection.onDataChannel = (RTCDataChannel channel) {
+      _dataChannel = channel;
+      _dataChannel.onMessage = (RTCDataChannelMessage message) {
+        setState(() {
+          _messages.add('Peer: ${message.text}');
+        });
+      };
+    };
+
+    // SDP 오퍼 생성 및 설정
+    RTCSessionDescription offer = await _peerConnection.createOffer();
+    await _peerConnection.setLocalDescription(offer);
+    print('Local Description: ${offer.sdp}');
+    _localSDP = offer.sdp;
+  }
+
+  void _sendMessage(String message) {
+    _dataChannel.send(RTCDataChannelMessage(message));
+    setState(() {
+      _messages.add('Me: $message');
+    });
+  }
+
+  void _setRemoteDescription(String sdp, String type) async {
+    RTCSessionDescription description = RTCSessionDescription(sdp, type);
+    await _peerConnection.setRemoteDescription(description);
+  }
+
+  void _createAnswer() async {
+    RTCSessionDescription answer = await _peerConnection.createAnswer();
+    await _peerConnection.setLocalDescription(answer);
+    print('Local Answer: ${answer.sdp}');
+    _localSDP = answer.sdp;
+  }
+
+  void _scanQRCode(BuildContext context) async {
+    final result = await Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => const QRScanScreen(),
+    ));
+
+    if (result != null) {
+      _setRemoteDescription(result, 'offer');
+      _createAnswer();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('P2P Chat App'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_messages[index]),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your message...',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {
+                    if (_controller.text.isNotEmpty) {
+                      _sendMessage(_controller.text);
+                      _controller.clear();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Share SDP via QR Code'),
+                          content: QrImage(
+                            data: _localSDP,
+                            version: QrVersions.auto,
+                            size: 200.0,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Generate QR Code'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _scanQRCode(context),
+                  child: const Text('Scan QR Code'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class QRScanScreen extends StatefulWidget {
+  const QRScanScreen({Key? key}) : super(key: key);
+
+  @override
+  _QRScanScreenState createState() => _QRScanScreenState();
+}
+
+class _QRScanScreenState extends State<QRScanScreen> {
+  final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  late QRViewController _controller;
+  String _scannedData = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scan QR Code'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: QRView(
+              key: _qrKey,
+              onQRViewCreated: (QRViewController controller) {
+                this._controller = controller;
+                controller.scannedDataStream.listen((scanData) {
+                  setState(() {
+                    _scannedData = scanData.code!;
+                    Navigator.pop(context, _scannedData);
+                  });
+                });
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+```
+
+```dart
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+```
+
+### 전체 코드
+`lib/screens/chat_screen.dart` 파일 전체 코드:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({Key? key}) : super(key: key);
+
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final RTCConfiguration _config = {
+    'iceServers': [
+      {'urls': 'stun:stun.l.google.com:19302'}
+    ]
+  };
+
+  late RTCPeerConnection _peerConnection;
+  late RTCDataChannel _dataChannel;
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _messages = [];
+  String _localSDP = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeConnection();
+  }
+
+  Future<void> _initializeConnection() async {
+    _peerConnection = await createPeerConnection(_config);
+
+    // 데이터 채널 생성
+    _dataChannel = await _peerConnection.createDataChannel(
+      'chat',
+      RTCDataChannelInit(),
+    );
+
+    // 데이터 채널 수신 이벤트 핸들러
+    _dataChannel.onMessage = (RTCDataChannelMessage message) {
+      setState(() {
+        _messages.add('Peer: ${message.text}');
+      });
+    };
+
+    // ICE 후보 이벤트 핸들러
+    _peerConnection.onIceCandidate = (RTCIceCandidate candidate) {
+      print('ICE Candidate: ${candidate.candidate}');
+    };
+
+    // 데이터 채널 이벤트 핸들러
+    _peerConnection.onDataChannel = (RTCDataChannel channel) {
+      _dataChannel = channel;
+      _dataChannel.onMessage = (RTCDataChannelMessage message) {
+        setState(() {
+          _messages.add('Peer: ${message.text}');
+        });
+      };
+    };
+
+    // SDP 오퍼 생성 및 설정
+    RTCSessionDescription offer = await _peerConnection.createOffer();
+    await _peerConnection.setLocalDescription(offer);
+    print('Local Description: ${offer.sdp}');
+    _localSDP = offer.sdp;
+  }
+
+  void _sendMessage(String message) {
+    _dataChannel.send(RTCDataChannelMessage(message));
+    setState(() {
+      _messages.add('Me: $message');
+    });
+  }
+
+  void _setRemoteDescription(String sdp, String type) async {
+    RTCSessionDescription description = RTCSessionDescription(sdp, type);
+    await _peerConnection.setRemoteDescription(description);
+  }
+
+  void _createAnswer() async {
+    RTCSessionDescription answer = await _peerConnection.createAnswer();
+    await _peerConnection.setLocalDescription(answer);
+    print('Local Answer: ${answer.sdp}');
+    _localSDP = answer.sdp;
+  }
+
+  void _scanQRCode(BuildContext context) async {
+    final result = await Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => const QRScanScreen(),
+    ));
+
+    if (result != null) {
+      _setRemoteDescription(result, 'offer');
+      _createAnswer();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('P2P Chat App'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_messages[index]),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your message...',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {
+                    if (_controller.text.isNotEmpty) {
+                      _sendMessage(_controller.text);
+                      _controller.clear();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Share SDP via QR Code'),
+                          content: QrImage(
+                            data: _localSDP,
+                            version: QrVersions.auto,
+                            size: 200.0,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Generate QR Code'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _scanQRCode(context),
+                  child: const Text('Scan QR Code'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class QRScanScreen extends StatefulWidget {
+  const QRScanScreen({Key? key}) : super(key: key);
+
+  @override
+  _QRScanScreenState createState() => _QRScanScreenState();
+}
+
+class _QRScanScreenState extends State<QRScanScreen> {
+  final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  late QRViewController _controller;
+  String _scannedData = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scan QR Code'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: QRView(
+              key: _qrKey,
+              onQRViewCreated: (QRViewController controller) {
+                this._controller = controller;
+                controller.scannedDataStream.listen((scanData) {
+                  setState(() {
+                    _scannedData = scanData.code!;
+                    Navigator.pop(context, _scannedData);
+                  });
+                });
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+```
