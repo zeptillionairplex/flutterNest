@@ -1,18 +1,18 @@
 ## Question Prompt
-[im-also-a-good-gpt2-chatbot](https://chat.lmsys.org/)  
+Chat-Bot Site : [im-also-a-good-gpt2-chatbot](https://chat.lmsys.org/)  
 Objective: To create a perfect manual for building a chat app without a server using web3.0 technology. 
 The app and server should be able to operate immediately with just a simple copy and paste of the code.
 1. Answer from the perspective of a developer with 30 years of experience.
 2. Use Flutter for the frontend and  flutter sdk version must fit '>=3.0.0 <4.0.0'. and other library must fit this version too.
 3. Use Nest.js for the backend.
-4..Using DTO, Provider, Repository Design Pattern all front-end, back-end
+4. Using DTO, Provider, Repository Design Pattern all front-end, back-end
 5. Ensure the app allows two people to converse without going through a server after installation.
 6. The goal is to create a serverless chat app using concepts such as decentralization and blockchain technology.
 7. Apply encryption when exchanging data over the internet.
-8.Apply free-to-use technology that doesn’t use Ethereum.
-9.creating docker-compose, Dockerfile in nest.js backend
-10.Tell me how to use internet in build app and show me the what permission code to put in build setting
-11. show me whole project file tree structure.
+8. Apply free-to-use technology that doesn’t use Ethereum.
+9. Creating docker-compose, Dockerfile in nest.js backend
+10. Tell me how to use internet in build app and show me the what permission code to put in build setting
+11. Show me whole project file tree structure.
 답변은 한글로 해줘
 
 안녕하세요, 30년 경력의 개발자입니다. 질문하신 내용에 따라 서버 없이 동작하는 채팅 앱을 Web3.0 기술을 활용해 만드는 방법을 알려드리겠습니다. 프론트엔드는 Flutter, 백엔드는 Nest.js를 이용하고, 분산화와 블록체인 기술을 기반으로 한 서버리스 채팅 앱을 만들어 보겠습니다.
