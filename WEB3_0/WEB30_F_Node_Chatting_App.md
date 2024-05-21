@@ -46,22 +46,22 @@ backend/
 **src/index.js**
 ```javascript
 const WebSocket = require('ws');
-const P2PService = require('./services/p2pService');
 
-const server = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080 });
 
-server.on('connection', (socket) => {
-  console.log('새로운 피어가 연결되었습니다.');
-  const p2pService = new P2PService(socket);
-  
-  socket.on('message', (message) => {
-    const data = JSON.parse(message);
-    p2pService.handleMessage(data);
-  });
+wss.on('connection', (ws) => {
+    ws.on('message', (message) => {
+        const data = JSON.parse(message);
 
-  socket.on('close', () => {
-    p2pService.cleanup();
-  });
+    // 특정 클라이언트에게 시그널링 메시지 전달
+    wss.clients.forEach((client) => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(data));
+            }
+        });
+    });
+
+    console.log('새로운 클라이언트 연결됨');
 });
 
 console.log('WebSocket 서버가 ws://localhost:8080 에서 실행 중입니다.');
@@ -204,12 +204,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.0
-  http: ^0.15.0
-  uuid: ^3.0.5
-  simple_peer:
-    git:
-      url: https://github.com/blackbean99/simple_peer.git
+  provider:
+  http:
+  uuid:
+  flutter_webrtc:
+  web_socket_channel:
+  flutter_dotenv:
 
 dev_dependencies:
   flutter_test:
@@ -277,8 +277,12 @@ class ChatRepository {
 
 **lib/providers/chat_provider.dart**
 ```dart
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../data/chat_repository.dart';
 import '../data/models/message.dart';
@@ -287,15 +291,118 @@ class ChatProvider with ChangeNotifier {
   final ChatRepository _chatRepository = ChatRepository();
   final String _username;
   final Uuid _uuid = Uuid();
+  String webSocketURL = dotenv.env['WebSocket_URL']!;
 
-  ChatProvider(this._username);
+  RTCPeerConnection? _peerConnection;
+  RTCDataChannel? _dataChannel;
+  WebSocketChannel? _channel;
+  RTCSessionDescription? _localDescription;
+
+  ChatProvider(this._username) {
+    _setupWebSocket();
+    _setupPeerConnection();
+  }
 
   List<Message> get messages => _chatRepository.getMessages();
+
+  void _setupWebSocket() {
+    _channel = WebSocketChannel.connect(Uri.parse(webSocketURL));
+
+    _channel!.stream.listen((message) {
+      final data = jsonDecode(message);
+
+      if (data['type'] == 'offer') {
+        _handleOffer(RTCSessionDescription(data['sdp'], data['type']));
+      } else if (data['type'] == 'answer') {
+        _handleAnswer(RTCSessionDescription(data['sdp'], data['type']));
+      } else if (data['type'] == 'ice-candidate') {
+        _handleIceCandidate(data['candidate']);
+      }
+    });
+  }
+
+  void _setupPeerConnection() async {
+    final config = {
+      "iceServers": [
+        {"urls": "stun:stun.l.google.com:19302"}
+      ]
+    };
+
+    _peerConnection = await createPeerConnection(config);
+    _dataChannel = await _peerConnection!.createDataChannel('chat', RTCDataChannelInit());
+
+    _peerConnection!.onIceCandidate = (candidate) {
+      if (candidate != null) {
+        _channel!.sink.add(jsonEncode({
+          'type': 'ice-candidate',
+          'candidate': candidate.toMap(),
+        }));
+      }
+    };
+
+    _peerConnection!.onDataChannel = (channel) {
+      channel.onMessage = (RTCDataChannelMessage message) {
+        _receiveMessage(message.text);
+      };
+    };
+
+    _dataChannel!.onMessage = (RTCDataChannelMessage message) {
+      _receiveMessage(message.text);
+    };
+
+    _createOffer();
+    notifyListeners();
+  }
+
+  void _createOffer() async {
+    _localDescription = await _peerConnection!.createOffer();
+    await _peerConnection!.setLocalDescription(_localDescription!);
+
+    _channel!.sink.add(jsonEncode({
+      'type': 'offer',
+      'sdp': _localDescription!.sdp,
+    }));
+  }
+
+  void _handleOffer(RTCSessionDescription description) async {
+    await _peerConnection!.setRemoteDescription(description);
+    _localDescription = await _peerConnection!.createAnswer();
+    await _peerConnection!.setLocalDescription(_localDescription!);
+
+    _channel!.sink.add(jsonEncode({
+      'type': 'answer',
+      'sdp': _localDescription!.sdp,
+    }));
+  }
+
+  void _handleAnswer(RTCSessionDescription description) async {
+    await _peerConnection!.setRemoteDescription(description);
+  }
+
+  void _handleIceCandidate(Map<String, dynamic> candidate) async {
+    await _peerConnection!.addCandidate(RTCIceCandidate(
+      candidate['candidate'],
+      candidate['sdpMid'],
+      candidate['sdpMLineIndex'],
+    ));
+  }
 
   void sendMessage(String content) {
     final message = Message(
       id: _uuid.v4(),
       sender: _username,
+      content: content,
+      timestamp: DateTime.now(),
+    );
+    _chatRepository.addMessage(message);
+    _dataChannel!.send(RTCDataChannelMessage(content));
+    notifyListeners();
+  }
+
+  void _receiveMessage(String content) {
+    final message = Message(
+      id: _uuid.v4(),
+      sender: 'Peer',
       content: content,
       timestamp: DateTime.now(),
     );
@@ -385,6 +492,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: () {
                     final content = _controller.text;
                     if (content.isNotEmpty) {
+                      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
                       chatProvider.sendMessage(content);
                       _controller.clear();
                     }
@@ -411,7 +519,12 @@ import 'package:provider/provider.dart';
 import 'providers/chat_provider.dart';
 import 'screens/chat_screen.dart';
 
-void main() {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+Future<void> main() async {
+  // Load .env file
+  await dotenv.load(fileName: ".env");
+
   runApp(const MyApp());
 }
 
