@@ -185,6 +185,273 @@ project/
      }
    }
    ```
+   
+<details>
+   <summary>"// 메시지를 블록체인 네트워크로 전송하는 로직 추가"</summary>
+예, "// 메시지를 블록체인 네트워크로 전송하는 로직 추가 필요" 부분에 당신이 직접 블록체인 네트워크로 메시지를 전송하는 로직을 작성해야 합니다. 
+이 예제에서 IPFS를 사용하여 메시지를 탈중앙화된 스토리지에 저장하고, 그 해시를 공유하는 로직을 작성해 드리겠습니다.
+
+### 1. IPFS 연동을 위한 패키지 설치
+
+`pubspec.yaml`에 다음 의존성을 추가하세요:
+```yaml
+dependencies:
+  ipfs_client: ^0.1.0
+  http: ^0.13.4
+  provider: ^6.0.2
+  encrypt: ^5.0.1
+```
+
+### 2. IPFS 유틸리티 클래스 구현
+
+`lib/ipfs_util.dart` 파일을 생성하고 다음 코드를 추가하세요:
+```dart
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+
+class IPFSUtil {
+  final String _apiUrl = 'http://localhost:5001/api/v0';
+
+  Future<String> addText(String text) async {
+    final uri = Uri.parse('$_apiUrl/add');
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      body: {
+        'file': text,
+      },
+    );
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      return jsonResponse['Hash'];
+    } else {
+      throw Exception('Failed to add text to IPFS');
+    }
+  }
+
+  Future<String> getText(String hash) async {
+    final uri = Uri.parse('$_apiUrl/cat?arg=$hash');
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      return utf8.decode(response.bodyBytes);
+    } else {
+      throw Exception('Failed to retrieve text from IPFS');
+    }
+  }
+}
+```
+
+### 3. ChatProvider에 IPFS 로직 추가
+
+`lib/chat_provider.dart` 파일을 다음과 같이 수정하세요:
+```dart
+import 'package:flutter/foundation.dart';
+import 'ipfs_util.dart';
+import 'encryption_util.dart';
+
+class ChatProvider extends ChangeNotifier {
+  List<String> _messages = [];
+
+  List<String> get messages => _messages;
+
+  final IPFSUtil _ipfsUtil = IPFSUtil();
+
+  void sendMessage(String message) async {
+    try {
+      // 메시지 암호화
+      final encryptedMessage = EncryptionUtil.encrypt(message).base64;
+
+      // IPFS에 메시지 저장
+      final hash = await _ipfsUtil.addText(encryptedMessage);
+
+      // 해시 값을 리스트에 추가
+      _messages.add('IPFS Hash: $hash');
+      notifyListeners();
+    } catch (e) {
+      _messages.add('Error: $e');
+      notifyListeners();
+    }
+  }
+
+  void receiveMessage(String hash) async {
+    try {
+      // IPFS에서 메시지 가져오기
+      final encryptedMessage = await _ipfsUtil.getText(hash);
+
+      // 메시지 복호화
+      final decryptedMessage = EncryptionUtil.decrypt(Encrypted.fromBase64(encryptedMessage));
+      _messages.add('Decrypted: $decryptedMessage');
+      notifyListeners();
+    } catch (e) {
+      _messages.add('Error: $e');
+      notifyListeners();
+    }
+  }
+}
+```
+
+### 4. ChatPage에 메시지 수신 기능 추가
+
+`lib/main.dart` 파일에서 `ChatPage` 위젯을 다음과 같이 수정하세요:
+```dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'chat_provider.dart';
+
+void main() {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Decentralized Chat',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: ChatPage(),
+    );
+  }
+}
+
+class ChatPage extends StatelessWidget {
+  final TextEditingController _sendController = TextEditingController();
+  final TextEditingController _receiveController = TextEditingController();
+
+  void _sendMessage(BuildContext context) {
+    final provider = Provider.of<ChatProvider>(context, listen: false);
+    provider.sendMessage(_sendController.text);
+    _sendController.clear();
+  }
+
+void _receiveMessage(BuildContext context) {
+    final provider = Provider.of<ChatProvider>(context, listen: false);
+    provider.receiveMessage(_receiveController.text);
+    _receiveController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Decentralized Chat'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Consumer<ChatProvider>(
+              builder: (context, provider, _) {
+                return ListView.builder(
+                  itemCount: provider.messages.length,
+                  itemBuilder: (context, index) {
+                    final message = provider.messages[index];
+                    return ListTile(
+                      title: Text(message),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _sendController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter your message...',
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.send),
+                      onPressed: () => _sendMessage(context),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _receiveController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter IPFS hash...',
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.download),
+                      onPressed: () => _receiveMessage(context),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### 최종 프로젝트 구조
+```
+project/
+ ├── client/
+ │    ├── android/
+ │    ├── ios/
+ │    ├── lib/
+ │    │    ├── encryption_util.dart
+ │    │    ├── ipfs_util.dart
+ │    │    ├── chat_provider.dart
+ │    │    └── main.dart
+ │    ├── pubspec.yaml
+ └── server/
+      ├── src/
+      │    ├── controllers/
+      │    │    └── message.controller.ts
+      │    ├── dto/
+      │    │    └── create-message.dto.ts
+      │    ├── entities/
+      │    │    └── message.entity.ts
+      │    ├── modules/
+      │    │    └── message.module.ts
+      │    ├── repositories/
+      │    │    └── message.repository.ts
+      │    ├── services/
+      │    │    └── message.service.ts
+      │    ├── utils/
+      │    │    └── encryption.util.ts
+      ├── Dockerfile
+      ├── docker-compose.yml
+      ├── package.json
+      ├── tsconfig.json
+```
+
+### 전체적인 코드 요약
+**Flutter 프론트엔드:** IPFS와 암호화를 통해 메시지를 안전하게 관리하고 저장합니다.
+
+**Nest.js 백엔드:** Docker를 사용하여 배포 가능하며, 메시지 관리와 암호화 로직을 포함합니다.
+
+### 결론
+해당 구조를 통해 Flutter 프론트엔드와 Nest.js 백엔드를 사용하여 블록체인 기술을 활용한 채팅 앱을 구축할 수 있습니다. IPFS와의 연동으로 메시지를 탈중앙화된 스토리지에 안전하게 저장하는 방식으로 서버리스 채팅 앱을 완성합니다.   
+</details>  
 
 ### 5. 백엔드 구현 (Nest.js)
 1. **Nest.js 프로젝트 생성**
