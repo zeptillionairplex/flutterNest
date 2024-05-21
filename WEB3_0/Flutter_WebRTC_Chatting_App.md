@@ -492,15 +492,6 @@ class _QRScanScreenState extends State<QRScanScreen> {
 }
 ```
 
-```dart
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-}
-```
-
 ### 전체 코드
 `lib/screens/chat_screen.dart` 파일 전체 코드:
 
