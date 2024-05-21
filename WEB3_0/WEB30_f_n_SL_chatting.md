@@ -14,7 +14,7 @@ The app and server should be able to operate immediately with just a simple copy
 11.Using DTO, Provider, Repository Design Pattern all front-end, back-end
 답변은 한글로 해줘
 
-### 완벽한 서버 없는 채팅 앱 만들기 매뉴얼
+## 완벽한 서버 없는 채팅 앱 만들기 매뉴얼
 
 #### 목표
 서버를 거치지 않고도 두 명의 사용자가 채팅을 할 수 있는 완벽한 채팅 앱 매뉴얼을 작성합니다. 웹 3.0 기술을 사용하여 탈중앙화 및 블록체인 개념을 적용하고, 암호화를 통해 데이터를 안전하게 주고받습니다. 앱은 Flutter로 프런트엔드를, Nest.js로 백엔드를 구축하며 Docker 및 Docker Compose를 사용합니다.
