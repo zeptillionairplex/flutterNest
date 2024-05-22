@@ -5,10 +5,11 @@
 Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology And
 with every detail Powershell command in Windows 11 OS for very helpful when developing. 
 The app and server should be able to operate immediately with just a simple copy and paste of the code.
+Most import thing is adapting a blockchain base decentralized serverless technology.
 1. Answer from the perspective of a high end developer with 100 years of experience.
 2. Use Android Native App for the frontend.  
-3. Use Node.js for the backend.
-4. Using DTO, Provider, Repository Design Pattern all front-end, back-end
+3. Use Node for the backend not using Nestjs.  
+4. Using DTO, Provider, Repository Design Pattern all front-end, back-end.  
 5. Ensure the app allows two people to converse without going through a server after installation.
 6. The goal is to create a serverless chat app using concepts such as decentralization and blockchain technology.
 7. Apply encryption when exchanging data over the internet.
@@ -16,390 +17,547 @@ The app and server should be able to operate immediately with just a simple copy
 9. Creating docker-compose, Dockerfile in nest.js backend.  
 10. Tell me how to use internet in build app and show me the what permission code to put in build setting.  
 11. Show me whole project file tree structure.  
+12. When answer is over, show me "Answer Done".
 답변은 한글로 해줘
 ```
 
-## 완벽한 Web 3.0 채팅 앱 매뉴얼 (노 서버)
-### 고급 개발자 관점에서의 매뉴얼
+## 완벽한 WEB 3.0 기반 서버 없는 채팅 앱 매뉴얼
+### 목표
+- 서버 없이 Web 3.0 기술로 채팅 앱을 구축한다.
+- Node를 백엔드로 사용하고 Android Native App을 프론트엔드로 사용한다.
+- 데이터 전송 시 암호화를 적용하고 블록체인 기반 탈중앙화 기술을 활용한다.
 
 ### 전제 조건
-1. **Android Native App**: 프론트엔드
-2. **Node.js**: 백엔드
-3. **DTO, Provider, Repository 디자인 패턴** 사용
-4. **P2P 채팅**: 서버를 거치지 않고 블록체인 및 암호화 기술 활용
-5. **Docker & Docker Compose**: 백엔드 컨테이너화
+- Windows 11 PowerShell 명령어를 사용해 개발 환경을 설정한다.
+- 이 매뉴얼은 고급 개발자의 관점에서 작성되었다.
+- 모든 소스 코드는 복사 및 붙여넣기로 즉시 실행할 수 있다.
 
-## 프로젝트 구조
+### 프로젝트 구조
 ```bash
-chat-app/
-├── android-frontend/
-│   └── ChatApp/
-│       ├── app/
-│       └── gradle/
-├── node-backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── dto/
-│   │   ├── providers/
-│   │   └── repositories/
-│   ├── Dockerfile
+blockchain-chat-app/
+├── backend/
 │   ├── docker-compose.yml
-│   └── nest-cli.json
-└── powershell-commands.ps1
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── dto/
+│   │   │   │   └── message.dto.js
+│   │   │   ├── provider/
+│   │   │   │   └── message.provider.js
+│   │   │   ├── repository/
+│   │   │   │   └── message.repository.js
+│   │   │   └── message.service.js
+│   │   └── index.js
+├── frontend/
+│   ├── build.gradle
+│   ├── AndroidManifest.xml
+│   ├── app/
+│   │   └── src/
+│   │       ├── main/
+│   │       │   ├── java/
+│   │       │   │   └── com/
+│   │       │   │       └── chatapp/
+│   │       │   │           ├── MainActivity.java
+│   │       │   │           └── ChatService.java
+│   │       │   └── res/
+│   │       │       └── layout/
+│   │       │           └── activity_main.xml
+└── README.md
 ```
 
-### Android Native 앱 개발
-1. **Android Studio 설치**: 최신 버전 다운로드 및 설치
-2. **새 프로젝트 생성**: `Empty Activity` 선택
-3. **필요한 라이브러리 추가**:
-   - `build.gradle (Module: app)`에서 다음 라이브러리 추가
-   ```gradle
-   dependencies {
-       implementation 'androidx.appcompat:appcompat:1.3.1'
-       implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
-       implementation 'com.google.android.material:material:1.4.0'
-       implementation 'org.java-websocket:Java-WebSocket:1.5.2'
-       implementation 'com.google.crypto.tink:tink-android:1.6.1'
-   }
-   ```
-4. **인터넷 권한 추가**: `AndroidManifest.xml`에서 인터넷 권한 추가
-   ```xml
-   <uses-permission android:name="android.permission.INTERNET" />
-   ```
-5. **UI 및 로직 구현**:
-   - `MainActivity.java`:
-   ```java
-   package com.example.chatapp;
+### PowerShell 명령어
+1. **Node.js 및 npm 설치**: [Node.js 공식 사이트](https://nodejs.org/)에서 최신 버전을 다운로드하거나, PowerShell에서 Chocolatey를 통해 설치한다.
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; `
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-   import android.os.Bundle;
-   import android.view.View;
-   import android.widget.EditText;
-   import android.widget.TextView;
-   import androidx.appcompat.app.AppCompatActivity;
-   import java.net.URI;
-   import org.java_websocket.client.WebSocketClient;
-   import org.java_websocket.handshake.ServerHandshake;
+choco install nodejs -y
+```
 
-   public class MainActivity extends AppCompatActivity {
-       private WebSocketClient webSocketClient;
-       private TextView chatView;
-       private EditText inputMessage;
+2. **Docker 설치**: [Docker 공식 사이트](https://www.docker.com/products/docker-desktop/)에서 Docker Desktop을 다운로드한다.
 
-       @Override
-       protected void onCreate(Bundle savedInstanceState) {
-           super.onCreate(savedInstanceState);
-           setContentView(R.layout.activity_main);
+3. **프로젝트 디렉토리 생성 및 이동**:
+```powershell
+mkdir blockchain-chat-app
+cd blockchain-chat-app
+```
 
-           chatView = findViewById(R.id.chatView);
-           inputMessage = findViewById(R.id.inputMessage);
+### 백엔드(Node.js) 설정
+1. **프로젝트 구조 생성**:
+```powershell
+mkdir backend
+cd backend
+```
 
-           URI uri = URI.create("ws://YOUR_NODE_BACKEND_SERVER:8080");
-           webSocketClient = new WebSocketClient(uri) {
-               @Override
-               public void onOpen(ServerHandshake handshakedata) {
-                   chatView.append("Connected to the server\n");
-               }
+2. **Node.js 프로젝트 초기화**:
+```powershell
+npm init -y
+```
 
-               @Override
-               public void onMessage(String message) {
-                   runOnUiThread(() -> chatView.append("Server: " + message + "\n"));
-               }
+3. **필요한 패키지 설치**:
+```powershell
+npm install express body-parser crypto-js
+```
 
-               @Override
-               public void onClose(int code, String reason, boolean remote) {
-                   runOnUiThread(() -> chatView.append("Disconnected from the server\n"));
-               }
+4. **Docker 설정 파일 작성**:
+- `docker-compose.yml`:
+```yaml
+version: '3'
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+```
 
-               @Override
-               public void onError(Exception ex) {
-                   runOnUiThread(() -> chatView.append("Error: " + ex.getMessage() + "\n"));
-               }
-           };
-           webSocketClient.connect();
-       }
+- `Dockerfile`:
+```Dockerfile
+FROM node:14
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+CMD ["node", "src/index.js"]
+```
 
-       public void sendMessage(View view) {
-           String message = inputMessage.getText().toString();
-           webSocketClient.send(message);
-           chatView.append("You: " + message + "\n");
-           inputMessage.setText("");
-       }
-   }
-   ```
-   
-1. `res/layout/activity_main.xml`에 UI 레이아웃을 작성합니다.
+5. **백엔드 코드 작성**:
+- `src/index.js`:
+```javascript
+const express = require('express');
+const bodyParser = require('body-parser');
+const crypto = require('crypto-js');
+const { MessageService } = require('./app/message.service');
+
+const app = express();
+const messageService = new MessageService();
+
+app.use(bodyParser.json());
+
+app.post('/send', (req, res) => {
+    const { message, recipientPublicKey } = req.body;
+    const encryptedMessage = crypto.AES.encrypt(message, recipientPublicKey).toString();
+    messageService.saveMessage(recipientPublicKey, encryptedMessage);
+    res.json({ success: true });
+});
+
+app.get('/messages/:publicKey', (req, res) => {
+    const { publicKey } = req.params;
+    const messages = messageService.getMessages(publicKey);
+    res.json({ messages });
+});
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000');
+});
+```
+
+6. **DTO, Provider, Repository 구현**:
+- `app/dto/message.dto.js`:
+```javascript
+class MessageDTO {
+    constructor(senderPublicKey, recipientPublicKey, message) {
+        this.senderPublicKey = senderPublicKey;
+        this.recipientPublicKey = recipientPublicKey;
+        this.message = message;
+    }
+}
+
+module.exports = { MessageDTO };
+```
+
+- `app/provider/message.provider.js`:
+```javascript
+const messages = {};
+
+class MessageProvider {
+    static saveMessage(recipientPublicKey, message) {
+        if (!messages[recipientPublicKey]) {
+            messages[recipientPublicKey] = [];
+        }
+        messages[recipientPublicKey].push(message);
+    }
+
+    static getMessages(recipientPublicKey) {
+        return messages[recipientPublicKey] || [];
+    }
+}
+
+module.exports = { MessageProvider };
+```
+
+- `app/repository/message.repository.js`:
+```javascript
+const { MessageProvider } = require('../provider/message.provider');
+
+class MessageRepository {
+    saveMessage(recipientPublicKey, message) {
+        MessageProvider.saveMessage(recipientPublicKey, message);
+    }
+
+    getMessages(recipientPublicKey) {
+        return MessageProvider.getMessages(recipientPublicKey);
+    }
+}
+
+module.exports = { MessageRepository };
+```
+
+- `app/message.service.js`:
+```javascript
+const { MessageRepository } = require('./repository/message.repository');
+
+class MessageService {
+    constructor() {
+        this.repository = new MessageRepository();
+    }
+
+    saveMessage(recipientPublicKey, message) {
+        this.repository.saveMessage(recipientPublicKey, message);
+    }
+
+    getMessages(recipientPublicKey) {
+        return this.repository.getMessages(recipientPublicKey);
+    }
+}
+
+module.exports = { MessageService };
+```
+
+### 프론트엔드(Android) 설정
+1. **프로젝트 구조 설정**:
+```powershell
+mkdir ../frontend
+cd ../frontend
+mkdir -p app/src/main/java/com/chatapp
+mkdir -p app/src/main/res/layout
+```
+
+2. **Android 프론트엔드 코드 작성**:
+- `build.gradle`:
+```gradle
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 31
+    defaultConfig {
+        applicationId "com.chatapp"
+        minSdkVersion 21
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
+    implementation 'com.google.code.gson:gson:2.8.8'
+}
+```
+
+- `AndroidManifest.xml`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.chatapp">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+```
+
+- `app/src/main/res/layout/activity_main.xml`:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <ScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_above="@+id/inputMessage"
-        android:layout_alignParentTop="true">
-
-        <TextView
-            android:id="@+id/chatView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="Chat History"
-            android:textSize="16sp" />
-    </ScrollView>
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
     <EditText
-        android:id="@+id/inputMessage"
-        android:layout_width="0dp"
+        android:id="@+id/messageInput"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toStartOf="@+id/sendButton"
-        android:layout_toLeftOf="@+id/sendButton"
-        android:layout_weight="1"
-        android:padding="16dp"
-        android:hint="Enter your message" />
+        android:hint="Enter Message" />
 
-    <Button
-        android:id="@+id/sendButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:padding="16dp"
-        android:text="Send"
-        android:onClick="sendMessage" />
+   <Button
+       android:id="@+id/sendButton"
+       android:layout_below="@id/messageInput"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Send" />
+   
+   <ListView
+       android:id="@+id/messageList"
+       android:layout_below="@id/sendButton"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp" />
+
 </RelativeLayout>
 ```
 
-### 백엔드 구현 (Node.js)
-1. **Nest.js 설치 및 프로젝트 설정**
-   파워셸을 이용하여 백엔드 프로젝트를 설정합니다.
-   ```powershell
-   # Nest CLI 설치
-   npm install -g @nestjs/cli
+- `app/src/main/java/com/chatapp/MainActivity.java`:
+```java
+package com.chatapp;
 
-   # 백엔드 프로젝트 생성
-   nest new node-backend
-   ```
-2. **DTO, Provider, Repository 구조 구현**
-   - `src/dto/message.dto.ts`
-   ```typescript
-   export class MessageDto {
-       readonly sender: string;
-       readonly recipient: string;
-       readonly message: string;
-   }
-   ```
-   - `src/repositories/message.repository.ts`
-   ```typescript
-   export class MessageRepository {
-       private messages: MessageDto[] = [];
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 
-       addMessage(message: MessageDto) {
-           this.messages.push(message);
-       }
+import androidx.appcompat.app.AppCompatActivity;
 
-       getMessages(): MessageDto[] {
-           return this.messages;
-       }
-   }
-   ```
-   - `src/providers/message.provider.ts`
-   ```typescript
-   import { Injectable } from '@nestjs/common';
-   import { MessageDto } from '../dto/message.dto';
-   import { MessageRepository } from '../repositories/message.repository';
+import com.google.gson.Gson;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
-   @Injectable()
-   export class MessageProvider {
-       constructor(private readonly messageRepository: MessageRepository) {}
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-       saveMessage(message: MessageDto) {
-           this.messageRepository.addMessage(message);
-       }
+public class MainActivity extends AppCompatActivity {
 
-       listMessages(): MessageDto[] {
-           return this.messageRepository.getMessages();
-       }
-   }
-   ```
-   - `src/controllers/chat.controller.ts`
-   ```typescript
-   import {
-       WebSocketGateway,
-       WebSocketServer,
-       SubscribeMessage,
-       MessageBody,
-       ConnectedSocket,
-   } from '@nestjs/websockets';
-   import { Server, Socket } from 'socket.io';
-   import { MessageDto } from '../dto/message.dto';
-   import { MessageProvider } from '../providers/message.provider';
+    private static final String SERVER_URL = "http://localhost:3000";
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-   @WebSocketGateway({ cors: true })
-   export class ChatController {
-       @WebSocketServer()
-       server: Server;
+    private OkHttpClient client = new OkHttpClient();
+    private Gson gson = new Gson();
+    private ArrayAdapter<String> messageAdapter;
+    private List<String> messages = new ArrayList<>();
 
-       constructor(private readonly messageProvider: MessageProvider) {}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-       @SubscribeMessage('message')
-       handleMessage(
-           @MessageBody() message: MessageDto,
-           @ConnectedSocket() client: Socket,
-       ) {
-           this.messageProvider.saveMessage(message);
-           this.server.emit('message', message);
-       }
-   }
-   ```
-3. **모듈 구성 및 의존성 주입**
-   - `src/app.module.ts`
-   ```typescript
-   import { Module } from '@nestjs/common';
-   import { ChatController } from './controllers/chat.controller';
-   import { MessageProvider } from './providers/message.provider';
-   import { MessageRepository } from './repositories/message.repository';
+        EditText messageInput = findViewById(R.id.messageInput);
+        Button sendButton = findViewById(R.id.sendButton);
+        ListView messageList = findViewById(R.id.messageList);
 
-   @Module({
-       imports: [],
-       controllers: [ChatController],
-       providers: [MessageProvider, MessageRepository],
-   })
-   export class AppModule {}
-   ```
+        messageAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messages);
+        messageList.setAdapter(messageAdapter);
 
-### Docker 구성
-1. `Dockerfile`
-```Dockerfile
-# Base image
-FROM node:18-alpine
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String message = messageInput.getText().toString();
+                if (!message.isEmpty()) {
+                    sendMessage(message);
+                    messageInput.setText("");
+                }
+            }
+        });
 
-# Create app directory
-WORKDIR /usr/src/app
+        fetchMessages("recipientPublicKey");
+    }
 
-# Install app dependencies
-COPY package*.json ./
-RUN npm install
+    private void sendMessage(String message) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String recipientPublicKey = "recipientPublicKey";
+                    RequestBody body = RequestBody.create(JSON, gson.toJson(new ChatMessage("senderPublicKey", recipientPublicKey, message)));
+                    Request request = new Request.Builder()
+                            .url(SERVER_URL + "/send")
+                            .post(body)
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    if (response.isSuccessful()) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                messages.add("Me: " + message);
+                                messageAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
-# Bundle app source
-COPY . .
+    private void fetchMessages(String publicKey) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Request request = new Request.Builder()
+                            .url(SERVER_URL + "/messages/" + publicKey)
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    if (response.isSuccessful()) {
+                        ChatMessage[] fetchedMessages = gson.fromJson(response.body().string(), ChatMessage[].class);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (ChatMessage message : fetchedMessages) {
+                                    messages.add("Friend: " + message.message);
+                                }
+                                messageAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
-# Expose port
-EXPOSE 3000
+    static class ChatMessage {
+        String senderPublicKey;
+        String recipientPublicKey;
+        String message;
 
-# Start the application
-CMD ["npm", "run", "start:prod"]
+        ChatMessage(String senderPublicKey, String recipientPublicKey, String message) {
+            this.senderPublicKey = senderPublicKey;
+            this.recipientPublicKey = recipientPublicKey;
+            this.message = message;
+        }
+    }
+}
 ```
 
-2. `docker-compose.yml`
-```yaml
-version: '3.8'
-services:
-  node-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:3000"
-    environment:
-      - NODE_ENV=production
-```
-
-3. **Nest CLI 구성 파일**
-   - `nest-cli.json`
-   ```json
-   {
-     "collection": "@nestjs/schematics",
-     "sourceRoot": "src"
-   }
-   ```
-
-### 파워셸 명령어 (Windows 11)
-프로젝트를 쉽게 초기화하고 개발 환경을 유지하려면 다음 파워셸 스크립트를 사용합니다.
-
-- `powershell-commands.ps1`
+### Docker Compose로 백엔드 실행
+1. **Docker 빌드 및 실행**:
 ```powershell
-# PowerShell script to set up the project
-
-# Android Native Project Setup
-Write-Host "Setting up Android Native project..."
-cd ./android-frontend/ChatApp
-./gradlew clean
-./gradlew build
-cd ../..
-
-# Build Docker images for backend
-Write-Host "Building Docker images for Node.js backend..."
-cd ./node-backend
-docker-compose build
-docker-compose up -d
-cd ..
-
-Write-Host "Project initialization completed."
+cd ../backend
+docker-compose up --build -d
 ```
 
-### 프로젝트 파일 트리 전체 구조
+### PowerShell 명령어로 Android 빌드 및 실행
+1. **Gradle Wrapper 생성**:
+```powershell
+cd ../frontend
+gradlew wrapper
+```
+
+2. **앱 빌드 및 실행**:
+```powershell
+./gradlew assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+- Android 기기에 앱을 설치하려면 USB 디버깅을 활성화하고 개발자 옵션을 사용해야 합니다. USB 디버깅이 활성화된 경우 아래 명령을 사용하여 앱을 실행할 수 있습니다.
+
+```powershell
+adb shell am start -n com.chatapp/.MainActivity
+```
+
+### README.md 작성
+마지막으로 프로젝트의 `README.md`에 전체 프로젝트에 대한 지침을 추가합니다.
+
+- `README.md`:
+```markdown
+# Web 3.0 기반 서버 없는 채팅 앱
+
+## 프로젝트 구조
 ```bash
-chat-app/
-├── android-frontend/
-│   └── ChatApp/
-│       ├── app/
-│       │   ├── src/
-│       │   │   ├── main/
-│       │   │   │   ├── java/
-│       │   │   │   │   └── com/example/chatapp/
-│       │   │   │   │       └── MainActivity.java
-│       │   │   │   └── res/
-│       │   │   │       │   └── layout/
-│       │   │   │       │       └── activity_main.xml
-│       │   ├── build.gradle
-│       └── gradle/
-├── node-backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   │   └── chat.controller.ts
-│   │   ├── dto/
-│   │   │   └── message.dto.ts
-│   │   ├── providers/
-│   │   │   └── message.provider.ts
-│   │   └── repositories/
-│   │       └── message.repository.ts
-│   ├── Dockerfile
+blockchain-chat-app/
+├── backend/
 │   ├── docker-compose.yml
-│   └── nest-cli.json
-└── powershell-commands.ps1
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── dto/
+│   │   │   │   └── message.dto.js
+│   │   │   ├── provider/
+│   │   │   │   └── message.provider.js
+│   │   │   ├── repository/
+│   │   │   │   └── message.repository.js
+│   │   │   └── message.service.js
+│   │   └── index.js
+├── frontend/
+│   ├── build.gradle
+│   ├── AndroidManifest.xml
+│   ├── app/
+│   │   └── src/
+│   │       ├── main/
+│   │       │   ├── java/
+│   │       │   │   └── com/
+│   │       │   │       └── chatapp/
+│   │       │   │           ├── MainActivity.java
+│   │       │   │           └── ChatService.java
+│   │       │   └── res/
+│   │       │       └── layout/
+│   │       │           └── activity_main.xml
+└── README.md
 ```
 
-### 인터넷 사용 및 권한 코드 (Android 앱)
-1. **인터넷 사용 권한 추가**
-   - `AndroidManifest.xml`에 다음과 같이 인터넷 권한을 추가합니다.
-   ```xml
-   <uses-permission android:name="android.permission.INTERNET" />
-   ```
+## 백엔드 실행 방법
+### Docker Compose로 백엔드 실행
+1. **Docker 빌드 및 실행**:
+```bash
+cd backend
+docker-compose up --build -d
+```
 
-2. **인터넷을 사용하는 코드**
-   - `MainActivity.java`에서 실제로 WebSocket을 사용하여 인터넷에 연결합니다.
+## 프론트엔드 실행 방법
+### Gradle Wrapper로 Android 앱 빌드 및 실행
+1. **Gradle Wrapper 생성**:
+```bash
+cd frontend
+./gradlew wrapper
+```
 
-### Nest.js 백엔드 실행
-1. **Docker 빌드 및 실행**
-   ```powershell
-   # 파워셸 스크립트 실행
-   ./powershell-commands.ps1
-   ```
+2. **앱 빌드 및 실행**:
+```bash
+./gradlew assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n com.chatapp/.MainActivity
+```
 
-2. **백엔드 수동 실행**
-   ```bash
-   # Node.js 백엔드를 수동으로 실행하려면
-   cd node-backend
-   npm install
-   npm run start:prod
-   ```
+## 사용 기술
+- **백엔드**: Node.js, Express, Docker, DTO, Provider, Repository 패턴
+- **프론트엔드**: Android Native App, OkHttp, Gson
 
-### 마무리
-이 매뉴얼을 따라하면, 안드로이드 앱과 노드 백엔드로 구성된 서버리스 P2P 채팅 앱을 완성할 수 있습니다. 이 프로젝트는 웹 3.0의 핵심 개념인 탈중앙화, 암호화 및 P2P 통신을 사용합니다.
+## 주의 사항
+- **블록체인 기반 채팅 기능**은 구현되어 있지 않으므로 추후 개선이 필요합니다.
+- **암호화**는 간단한 AES 암호화 수준을 사용하며, 개선된 보안을 위해 추가 기능을 고려해야 합니다.
+```
 
-**끝.**   
+이렇게 하면 Web 3.0 기반의 서버 없는 채팅 앱을 완성할 수 있습니다. 추가적인 개선은 프로젝트 요구 사항에 따라 다양하게 적용 가능합니다.
