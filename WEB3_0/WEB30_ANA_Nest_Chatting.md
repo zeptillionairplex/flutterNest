@@ -1716,7 +1716,6 @@ public class MainActivity extends AppCompatActivity {
 마지막으로 프로젝트의 `README.md`에 전체 프로젝트에 대한 지침을 추가합니다.
 
 - `README.md`:
-```markdown
 # IPFS 기반 Web 3.0 서버 없는 채팅 앱
 
 ## 프로젝트 구조
@@ -1759,3 +1758,4 @@ blockchain-chat-app/
 │   │           └── res/
 │   │               └── layout/
 │   │                   └── activity_main.xml
+```
