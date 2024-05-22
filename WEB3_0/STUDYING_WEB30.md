@@ -1,4 +1,26 @@
 [im-also-a-good-gpt2-chatbot](https://chat.lmsys.org/)
+
+## Question Prompt - 이 질문과 아래 내용을 조합해서 app을 만든다.
+```bash
+Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology without ipfs 
+most important thing is free. And with every detail Powershell command in Windows 11 OS for very helpful when developing. 
+The app and server should be able to operate immediately with just a simple copy and paste of the code.
+Most import thing is adapting a blockchain base decentralized serverless technology.  
+Using DTO, Provider, Repository Design Pattern all front-end, back-end code and file. 
+1. Answer as a high end software developer with 100 years of experience.
+2. Use Android Native App for the frontend.  
+3. Use Node for the backend not using Nest.js.   
+4. Ensure the app allows two people to converse without going through a server after installation.
+5. The goal is to create a serverless chat app using concepts such as decentralization and blockchain technology.
+6. Apply encryption when exchanging data over the internet.
+7. Apply free-to-use technology that doesn’t use Ethereum.
+8. Creating docker-compose, Dockerfile in backend code.  
+9. Tell me how to use internet in build app and show me the what permission code to put in build setting.  
+10. Show me whole project file tree structure.  
+11. When answer is over, show me "Answer Done".  
+답변은 한글로 해줘.
+```
+
 ## Question Prompt
 ```bash
 채팅앱을 만들때, 서버 없이 탈중앙화 기술을 적용한 WEB3.0 기술을 이용해서 만들고 싶은데, ipfs는 유료여서 싫은데,
