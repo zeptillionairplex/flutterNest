@@ -1026,104 +1026,29 @@ Web3.0 기반의 탈중앙화된 채팅 앱에서는 기존 중앙화된 채팅 
 
 ### 구현 예시
 1. **DID 기반 사용자 식별 및 친구 찾기**
-   - **DID 생성 및 관리**:
-     - uPort, Ceramic, IDX 등 다양한 라이브러리를 사용하여 DID 생성.
-   - **DHT에 DID 저장 및 검색**:
-     ```javascript
-     const { create } = require('ipfs-http-client')
-     const ipfs = create({ host: 'localhost', port: '5001', protocol: 'http' })
+- **DID 생성 및 관리**:
+- uPort, Ceramic, IDX 등 다양한 라이브러리를 사용하여 DID 생성.
+- **DHT에 DID 저장 및 검색**:
+```javascript
+const { create } = require('ipfs-http-client')
+const ipfs = create({ host: 'localhost', port: '5001', protocol: 'http' })
 
-     async function storeDID(did) {
-       const res = await ipfs.dht.put(Buffer.from(did), Buffer.from('peer-address'))
-       console.log('DID stored:', res)
-     }
-
-     async function findDID(did) {
-       const res = await ipfs.dht.get(Buffer.from(did))
-       console.log('DID found:', res.toString())
-     }
-
-     // 사용 예시
-     storeDID('did:example:1234')
-     findDID('did:example:1234')
-     ```
-
-2. **PubSub 브로드캐스팅 및 메시지 주고받기**
-   ```javascript
-   const Libp2p = require('libp2p')
-   const WebRTCStar = require('libp2p-webrtc-star')
-   const Mplex = require('libp2p-mplex')
-   const { NOISE } = require('libp2p-noise')
-   const Gossipsub = require('libp2p-gossipsub')
-   const PeerId = require('peer-id')
-
-   async function createNode(peerId) {
-     const wrtcStar = new WebRTCStar({ id: peerId })
-
-     const node = await Libp2p.create({
-       peerId: peerId,
-       modules: {
-         transport: [wrtcStar],
-         streamMuxer: [Mplex],
-         connEncryption: [NOISE],
-         pubsub: Gossipsub
-       },
-       config: {
-         pubsub: {
-           enabled: true,
-           emitSelf: false
-         }
-       },
-       addresses: {
-         listen: ['/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star']
-       }
-     })
-
-     node.pubsub.subscribe('chat-topic', (message) => {
-       const { from, data } = message
-       console.log(`Message from ${from}: ${data.toString()}`)
-     })
-
-     await node.start()
-     return node
-   }
-
-   async function sendMessage(node, topic, message) {
-     await node.pubsub.publish(topic, Buffer.from(message))
-   }
-
-   
-  async function runChatApp() {
-    const peerId = await PeerId.create({ bits: 1024, keyType: 'rsa' })
-    const node = await createNode(peerId)
-  
-    console.log(`Node started with id ${peerId.toB58String()}`)
-  
-    node.pubsub.subscribe('chat-topic', (msg) => {
-      console.log(`Received message: ${msg.data.toString()}`)
-    })
-
-  setInterval(async () => {
-    await sendMessage(node, 'chat-topic', `Hello, Web3! ${new Date().toLocaleTimeString()}`)
-  }, 5000)
+async function storeDID(did) {
+  const res = await ipfs.dht.put(Buffer.from(did), Buffer.from('peer-address'))
+  console.log('DID stored:', res)
 }
 
-runChatApp().catch(console.error)
+async function findDID(did) {
+  const res = await ipfs.dht.get(Buffer.from(did))
+  console.log('DID found:', res.toString())
+}
+
+// 사용 예시
+storeDID('did:example:1234')
+findDID('did:example:1234')
 ```
 
-### 코드 설명
-- **createNode(peerId)**:
-  - WebRTC를 통한 P2P 연결을 지원하는 Libp2p 노드 생성.
-  - PubSub 프로토콜을 통해 채팅 메시지를 주고받기 위한 설정도 포함.
-
-- **sendMessage(node, topic, message)**:
-  - 특정 주제(topic)에 메시지를 게시하여 해당 주제에 가입된 모든 노드에 메시지 전송.
-
-- **runChatApp()**:
-  - Libp2p 노드를 생성하고, PubSub 채널에 가입하여 메시지를 수신.
-  - 일정 간격으로 메시지를 전송하여 메시징 테스트 수행.
-
-### 전체 코드
+2. **PubSub 브로드캐스팅 및 메시지 주고받기**
 ```javascript
 const Libp2p = require('libp2p')
 const WebRTCStar = require('libp2p-webrtc-star')
@@ -1214,3 +1139,350 @@ async function runDirectMessageApp() {
   const nodeA = await createNode(peerIdA)
 
   const peerIdB = await PeerId.create({ bits: 1024, keyType: 'rsa' })
+  const nodeB = await createNode(peerIdB)
+
+  // Peer A에서 Peer B로 메시지 전송
+  await receiveDirectMessage(nodeA)
+  await receiveDirectMessage(nodeB)
+
+  console.log(`Node A started with id ${peerIdA.toB58String()}`)
+  console.log(`Node B started with id ${peerIdB.toB58String()}`)
+
+  // 두 노드가 서로를 인식할 수 있도록 노드 B의 주소를 노드 A에 알려줌
+  await nodeA.peerStore.addressBook.set(peerIdB, nodeB.multiaddrs)
+  await nodeB.peerStore.addressBook.set(peerIdA, nodeA.multiaddrs)
+
+  setInterval(async () => {
+    await sendDirectMessage(nodeA, peerIdB, `Hello, Peer B! ${new Date().toLocaleTimeString()}`)
+    await sendDirectMessage(nodeB, peerIdA, `Hello, Peer A! ${new Date().toLocaleTimeString()}`)
+  }, 5000)
+}
+
+async function createNode(peerId) {
+  const wrtcStar = new WebRTCStar({ id: peerId })
+
+  const node = await Libp2p.create({
+    peerId: peerId,
+    modules: {
+      transport: [wrtcStar],
+      streamMuxer: [Mplex],
+      connEncryption: [NOISE],
+      pubsub: Gossipsub
+    },
+    config: {
+      pubsub: {
+        enabled: true,
+        emitSelf: false
+      }
+    },
+    addresses: {
+      listen: ['/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star']
+    }
+  })
+
+  await node.start()
+  return node
+}
+
+async function sendDirectMessage(node, peerId, message) {
+  const { stream } = await node.dialProtocol(peerId, '/direct-message/1.0.0')
+  const encoder = new TextEncoder()
+  await stream.sink([encoder.encode(message)])
+}
+
+async function receiveDirectMessage(node) {
+  node.handle('/direct-message/1.0.0', async ({ stream }) => {
+    const decoder = new TextDecoder()
+    for await (const message of stream.source) {
+      console.log(`Received direct message: ${decoder.decode(message)}`)
+    }
+  })
+}
+
+runDirectMessageApp().catch(console.error)
+```
+
+### 전체 코드 설명
+- **createNode(peerId)**:
+  - WebRTC를 통한 P2P 통신을 지원하는 Libp2p 노드 생성.
+  - PubSub 메시지 전송 및 다이렉트 메시징을 위한 설정 포함.
+
+- **sendDirectMessage(node, peerId, message)**:
+  - 특정 Peer ID에 직접 메시지를 전송.
+
+- **receiveDirectMessage(node)**:
+  - 노드에서 다이렉트 메시지를 수신.
+
+- **runDirectMessageApp()**:
+  - Peer A와 Peer B를 생성하고, 서로에게 메시지를 직접 전송.
+
+### 요약
+- **Direct Messaging**:
+  - 특정 노드 간에 직접 메시지를 주고받을 수 있는 다이렉트 메시징 구현.
+  - Libp2p를 통해 WebRTC 기반의 직접 연결을 설정하고 다이렉트 메시징 가능.
+
+### 결론
+Web3.0 기술을 활용하여 중계 노드나 서버 없이도 스마트폰 사용자들이 서로를 찾고 메시지를 주고받을 수 있습니다. PubSub 브로드캐스팅이나 다이렉트 메시징을 통해 구현할 수 있으며, DID, DHT 등과 같은 기술을 함께 사용하면 탈중앙화된 채팅 앱을 구축할 수 있습니다.
+
+## Question Prompt
+```bash
+도식으로 스마트폰만으로 서로 채팅이 간능한걸 자세히 설명해줘 세세한것도 다 도식으로 나타내서 설명해줘
+```
+
+**Web3.0 기술을 활용하여 두 스마트폰 간에 직접 채팅하는 과정을 도식화하여 설명하겠습니다.**
+
+### 도식
+```
++-------------------+                +-------------------+
+|                   |                |                   |
+|   스마트폰 A      |                 |   스마트폰 B      |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | IPFS 노드    |  |                 | | IPFS 노드    |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | PubSub       |  |                | | PubSub       |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | WebRTC/Libp2p|  |                | | WebRTC/Libp2p|  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | DID 인증     |  |                 | | DID 인증     |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
++-------------------+                +-------------------+
+
++---------------+                      +---------------+
+|               |                      |               |
+| NAT 방화벽   |                        | NAT 방화벽    |
+|               |                      |               |
++---------------+                      +---------------+
+
++---------------------------------------------------------+
+|               STUN/TURN 서버 (NAT 트래버설)              |
++---------------------------------------------------------+
+```
+
+### 과정 설명
+1. **IPFS 및 PubSub 설정**:
+   - 각 스마트폰에서 IPFS 노드를 실행하고, PubSub 채널에 가입합니다.
+   - PubSub 채널을 통해 메시지를 주고받을 수 있도록 설정합니다.
+
+2. **WebRTC 및 Libp2p 연결**:
+   - WebRTC 및 Libp2p를 사용하여 P2P 연결을 설정합니다.
+   - NAT 방화벽 뒤에 있는 경우 STUN/TURN 서버를 이용하여 NAT 트래버설을 수행합니다.
+
+3. **DID 인증을 통한 사용자 식별**:
+   - uPort, Ceramic, IDX 등의 DID 인증 방식을 활용하여 각 사용자의 신원을 확인합니다.
+   - DID 인증을 통해 메시지에 서명하고 메시지 신뢰성을 확보합니다.
+
+4. **메시지 주고받기**:
+   - PubSub 채널을 통해 브로드캐스팅 방식으로 메시지를 주고받거나,
+   - 특정 Peer ID를 통해 다이렉트 메시징을 수행합니다.
+
+### 구현 예시 (JavaScript)
+**Libp2p 및 PubSub을 사용하여 스마트폰 간의 채팅을 구현하는 예시 코드입니다.**
+
+```javascript
+const Libp2p = require('libp2p')
+const WebRTCStar = require('libp2p-webrtc-star')
+const Mplex = require('libp2p-mplex')
+const { NOISE } = require('libp2p-noise')
+const Gossipsub = require('libp2p-gossipsub')
+const PeerId = require('peer-id')
+
+async function createNode(peerId) {
+  const wrtcStar = new WebRTCStar({ id: peerId })
+
+  const node = await Libp2p.create({
+    peerId: peerId,
+    modules: {
+      transport: [wrtcStar],
+      streamMuxer: [Mplex],
+      connEncryption: [NOISE],
+      pubsub: Gossipsub
+    },
+    config: {
+      pubsub: {
+        enabled: true,
+        emitSelf: false
+      }
+    },
+    addresses: {
+      listen: ['/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star']
+    }
+  })
+
+  node.pubsub.subscribe('chat-topic', (message) => {
+    const { from, data } = message
+    console.log(`Message from ${from}: ${data.toString()}`)
+  })
+
+  await node.start()
+  return node
+}
+
+async function sendMessage(node, topic, message) {
+  await node.pubsub.publish(topic, Buffer.from(message))
+}
+
+async function receiveDirectMessage(node) {
+  node.handle('/direct-message/1.0.0', async ({ stream }) => {
+    const decoder = new TextDecoder()
+    for await (const message of stream.source) {
+      console.log(`Received direct message: ${decoder.decode(message)}`)
+    }
+  })
+}
+
+async function sendDirectMessage(node, peerId, message) {
+  const { stream } = await node.dialProtocol(peerId, '/direct-message/1.0.0')
+  const encoder = new TextEncoder()
+  await stream.sink([encoder.encode(message)])
+}
+
+async function runDirectMessageApp() {
+  const peerIdA = await PeerId.create({ bits: 1024, keyType: 'rsa' })
+  const nodeA = await createNode(peerIdA)
+
+  const peerIdB = await PeerId.create({ bits: 1024, keyType: 'rsa' })
+  const nodeB = await createNode(peerIdB)
+
+  // Direct Message 수신 설정
+  await receiveDirectMessage(nodeA)
+  await receiveDirectMessage(nodeB)
+
+  console.log(`Node A started with id ${peerIdA.toB58String()}`)
+  console.log(`Node B started with id ${peerIdB.toB58String()}`)
+
+  // 노드 A와 B의 주소를 서로 설정
+  await nodeA.peerStore.addressBook.set(peerIdB, nodeB.multiaddrs)
+  await nodeB.peerStore.addressBook.set(peerIdA, nodeA.multiaddrs)
+
+  setInterval(async () => {
+    await sendDirectMessage(nodeA, peerIdB, `Hello, Peer B! ${new Date().toLocaleTimeString()}`)
+    await sendDirectMessage(nodeB, peerIdA, `Hello, Peer A! ${new Date().toLocaleTimeString()}`)
+  }, 5000)
+}
+
+async function createNode(peerId) {
+  const wrtcStar = new WebRTCStar({ id: peerId })
+
+  const node = await Libp2p.create({
+    peerId: peerId,
+    modules: {
+      transport: [wrtcStar],
+      streamMuxer: [Mplex],
+      connEncryption: [NOISE],
+      pubsub: Gossipsub
+    },
+    config: {
+      pubsub: {
+        enabled: true,
+        emitSelf: false
+      }
+    },
+    addresses: {
+      listen: ['/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star']
+    }
+  })
+
+  await node.start()
+  return node
+}
+
+runDirectMessageApp().catch(console.error)
+```
+
+### 전체 코드 설명
+- **createNode(peerId)**:
+  - WebRTC를 통한 P2P 통신을 지원하는 Libp2p 노드 생성.
+  - PubSub 메시지 전송 및 다이렉트 메시징을 위한 설정 포함.
+
+- **sendDirectMessage(node, peerId, message)**:
+  - 특정 Peer ID에 직접 메시지를 전달.
+
+- **receiveDirectMessage(node)**:
+  - 노드에서 다이렉트 메시지를 수신.
+
+- **runDirectMessageApp()**:
+  - Peer A와 Peer B를 생성하고, 서로에게 메시지를 다이렉트로 전송.
+
+### 도식과 프로세스 설명
+**도식**
+```
++-------------------+                +-------------------+
+|                   |                |                   |
+|   스마트폰 A      |                |   스마트폰 B      |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | IPFS 노드    |  |                | | IPFS 노드    |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | PubSub       |  |                | | PubSub       |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | WebRTC/Libp2p|  |                | | WebRTC/Libp2p|  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | DID 인증     |  |                | | DID 인증     |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
++-------------------+                +-------------------+
+
++---------------+                +---------------+
+|               |                |               |
+| NAT 방화벽   |                | NAT 방화벽   |
+|               |                |               |
++---------------+                +---------------+
+
++-----------------------------------------------+
+|         STUN/TURN 서버 (NAT 트래버설)         |
++-----------------------------------------------+
+```
+
+**프로세스 설명**
+1. **IPFS 및 PubSub 설정**:
+   - 각 스마트폰에서 IPFS 노드를 실행하고, PubSub 채널에 가입합니다.
+   - PubSub 채널을 통해 메시지를 주고받을 수 있도록 설정합니다.
+
+2. **WebRTC 및 Libp2p 연결**:
+   - WebRTC 및 Libp2p를 사용하여 P2P 연결을 설정합니다.
+   - NAT 방화벽 뒤에 있는 경우 STUN/TURN 서버를 이용하여 NAT 트래버설을 수행합니다.
+
+3. **DID 인증을 통한 사용자 식별**:
+   - uPort, Ceramic, IDX 등의 DID 인증 방식을 활용하여 각 사용자의 신원을 확인합니다.
+   - DID 인증을 통해 메시지에 서명하고 메시지 신뢰성을 확보합니다.
+
+4. **메시지 주고받기**:
+   - PubSub 채널을 통해 브로드캐스팅 방식으로 메시지를 주고받거나,
+   - 특정 Peer ID를 통해 다이렉트 메시징을 수행합니다.
+
+
+
+**프로세스 설명**:
+
+1. **스마트폰 A와 B의 IPFS 노드 실행 및 PubSub 채널 가입**:
+    - 스마트폰 A와 B에 IPFS 노드를 실행하고, PubSub 프로토콜을 통해 'chat-topic' 채널에 가입합니다.
+    - PubSub 채널에 가입된 모든 노드가 메시지를 주고받을 수 있도록 설정합니다.
+   
+2. **WebRTC 및 Libp2p 연결 설정**:
+    - WebRTC-Star를 사용하여 WebRTC 기반의 P2P 연결을 Libp2p에서 설정합니다.
+    - 각 스마트폰의 NAT 방화벽을 통과하기 위해 STUN/TURN 서버를 사용하여 NAT 트래버설을 수행합니다.
+    - 스마트폰 A와 B가 서로의 Peer ID를 알고 있는 경우 직접 연결을 설정합니다.
+
+3. **DID 인증 및 메시지 서명**:
+    - 스마트폰 A와 B는 uPort, Ceramic, IDX 등으로 생성된 DID를 사용하여 자신의 신원을 인증하고 메시지에 서명합니다.
+    - 메시지 서명은 메시지의 신뢰성을 확보하기 위해 필요합니다.
+
+4. **메시지 주고받기**:
+   - **PubSub 브로드캐스팅**:
+     - 스마트폰 A는 'chat-topic' 채널에 메시지를 게시하여 스마트폰 B를 포함한 모든 가입 노드에게 메시지를 브로드캐스팅합니다.
+   - **다이렉트 메시징**:
+     - 스마트폰 A는 스마트폰 B의 Peer ID를 사용하여 '/direct-message/1.0.0' 프로토콜을 통해 다이렉트 메시징을 수행합니다.
