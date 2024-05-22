@@ -902,6 +902,108 @@ IPFS 네트워크에서 스마트폰 두 대만으로도 중계 노드 없이 �
 1. **동시에 온라인 상태**: 스마트폰 두 대가 동시에 온라인 상태여야 합니다.
 2. **P2P 연결 가능**: NAT 방화벽을 통과하여 P2P 연결이 가능해야 합니다.
 3. **PubSub 채널 가입**: 두 스마트폰이 동일한 PubSub 채널에 가입되어 있어야 합니다.
+<details>
+  <summary>PubSub 채널이란건 내가 만들어야하는 서버를 말하는건가?</summary>
+## Question Prompt
+
+```bash
+여기에서 "PubSub 채널 가입: 두 스마트폰이 동일한 PubSub 채널에 가입되어 있어야 합니다." 
+이 설명에서 말하는 PubSub 채널이란건 내가 만들어야하는 서버를 말하는건가?  
+```
+
+이전에 받은 답변에 포함된 "PubSub 채널 가입"에서 말하는 PubSub 채널은 사용자가 직접 만들어야 하는 서버가 아닙니다. 이는 PubSub 프로토콜을 활용하여 메시지 교환을 위해 지정하는 **주제(topic)**를 의미합니다.
+
+### PubSub 채널의 개념
+- **PubSub**: Publisher-Subscriber의 약자로, 메시징 시스템에서 메시지를 발행(publish)하는 주체와 메시지를 구독(subscribe)하는 주체 간의 관계를 나타냅니다.
+- **채널 (주제, Topic)**: 메시지를 주고받는 특정 주제 또는 채널을 의미하며, 동일한 채널에 가입한 모든 노드가 메시지를 주고받습니다.
+
+### PubSub 채널 예시
+이전에 제공된 코드에 포함된 부분을 살펴보면 다음과 같은 채널을 사용하고 있습니다.
+
+```javascript
+node.pubsub.subscribe('chat-topic', (message) => {
+  const { from, data } = message
+  console.log(`Message from ${from}: ${data.toString()}`)
+})
+```
+
+여기서 `chat-topic`이 바로 PubSub 채널에 해당합니다. 이 채널에 가입한 모든 노드가 이 주제에 대해 발행된 메시지를 수신합니다.
+
+### PubSub 채널 사용 방법
+1. 두 스마트폰 모두 동일한 PubSub 채널에 가입합니다.
+2. 서로 메시지를 주고받을 수 있습니다.
+
+### 코드 예시
+두 스마트폰 간에 PubSub 채널을 통해 메시지를 주고받는 코드 예시:
+
+```javascript
+const Libp2p = require('libp2p')
+const WebRTCStar = require('libp2p-webrtc-star')
+const Mplex = require('libp2p-mplex')
+const { NOISE } = require('libp2p-noise')
+const Gossipsub = require('libp2p-gossipsub')
+const PeerId = require('peer-id')
+
+async function createNode(peerId) {
+  const wrtcStar = new WebRTCStar({ id: peerId })
+
+  const node = await Libp2p.create({
+    peerId: peerId,
+    modules: {
+      transport: [wrtcStar],
+      streamMuxer: [Mplex],
+      connEncryption: [NOISE],
+      pubsub: Gossipsub
+    },
+    config: {
+      pubsub: {
+        enabled: true,
+        emitSelf: false
+      }
+    },
+    addresses: {
+      listen: ['/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star']
+    }
+  })
+
+  node.pubsub.subscribe('chat-topic', (message) => {
+    const { from, data } = message
+    console.log(`Message from ${from}: ${data.toString()}`)
+  })
+
+  await node.start()
+  return node
+}
+
+async function sendMessage(node, topic, message) {
+  await node.pubsub.publish(topic, Buffer.from(message))
+}
+
+async function runChatApp() {
+  const peerId = await PeerId.create({ bits: 1024, keyType: 'rsa' })
+  const node = await createNode(peerId)
+
+  console.log(`Node started with id ${peerId.toB58String()}`)
+
+  node.pubsub.subscribe('chat-topic', (msg) => {
+    console.log(`Received message: ${msg.data.toString()}`)
+  })
+
+  setInterval(async () => {
+    await sendMessage(node, 'chat-topic', `Hello, Web3! ${new Date().toLocaleTimeString()}`)
+  }, 5000)
+}
+
+runChatApp().catch(console.error)
+```
+
+### 정리
+- **PubSub**: 메시지 발행-구독 시스템.
+- **채널 (주제, Topic)**: 메시지를 주고받는 주제.
+- **실제 구현**: 채널 이름을 지정하고 동일한 이름으로 메시지를 발행하거나 수신하면 됩니다.
+
+즉, PubSub 채널은 사용자가 직접 서버를 구축하는 것이 아니라, 주제 이름을 지정해 메시지를 주고받을 수 있는 일종의 통신 그룹이라고 이해하시면 됩니다.
+</details>
 
 ### 문제점 및 해결 방안
 - **NAT 방화벽 문제**: 대부분의 스마트폰이 NAT(Network Address Translation) 뒤에 있기 때문에 직접적인 P2P 연결이 어렵습니다.
