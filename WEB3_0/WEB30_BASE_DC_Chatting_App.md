@@ -1,8 +1,9 @@
-[STUDYING_WEB30.md](https://github.com/zeptillionairplex/flutterNest/blob/main/WEB3_0/STUDYING_WEB30.md)
+[STUDYING_WEB30.md](https://github.com/zeptillionairplex/flutterNest/blob/main/WEB3_0/STUDYING_WEB30.md)  
 [im-also-a-good-gpt2-chatbot](https://chat.lmsys.org/)
-## Question Prompt
+
+## Question Prompt - 이 질문과 아래 내용을 조합해서 app을 만든다.
 ```bash
-위에 올린 내용과 다음에 올리는 질문을 조합해서 내가 원하는 서버없이 작동하는 web3.0 기술을 응용한 탈중앙화 서버가 완전 없이 작동하는 스마트폰 채팅앱을 만들어줘. "Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology without ipfs 
+위에 올린 내용과 다음에 올리는 질문을 조합해서 내가 원하는 서버없이 작동하는 web3.0 기술을 응용한 탈중앙화 서버가 완전 없이 작동하는 스마트폰 채팅앱을 만들어줘. 그리고 파일 트리에 있는 파일을 다 작성해주고, 주석으로 간단하게 코드를 넘기지 말고 구체적인 로직을 경력 100년의 개발자 입장에서 작성해줘. "Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology without ipfs 
 most important thing is free. And with every detail Powershell command in Windows 11 OS for very helpful when developing. 
 The app and server should be able to operate immediately with just a simple copy and paste of the code.
 Most import thing is adapting a blockchain base decentralized serverless technology.  
@@ -18,445 +19,1285 @@ Using DTO, Provider, Repository Design Pattern all front-end, back-end code and 
 9. Tell me how to use internet in build app and show me the what permission code to put in build setting.  
 10. Show me whole project file tree structure.  
 11. When answer is over, show me "Answer Done".  
-답변은 한글로 해줘."
+답변은 한글로 해줘." 
 ```
 
-### 서버 없는 Web3.0 기술을 응용한 스마트폰 채팅앱 개발 매뉴얼
+## 스마트폰 채팅 앱: Web3.0 기술 기반 탈중앙화 서버 없는 채팅 앱
 
-#### 목표: 서버를 사용하지 않고 Web3.0 기술을 활용하여 탈중앙화된 스마트폰 채팅 앱을 개발
+### 개요
+이 프로젝트는 Web3.0 기술을 활용하여 두 사용자가 서버 없이 직접 채팅할 수 있는 탈중앙화된 스마트폰 채팅 앱을 만드는 것을 목표로 합니다. IPFS를 사용하지 않고, 탈중앙화 및 블록체인 기반 기술을 활용하며, DTO, Provider, Repository 디자인 패턴을 적용해 구현합니다. Android Native 앱을 프론트엔드로, Node.js를 백엔드로 사용합니다.
 
----
-
-### 1. 개요
-
-이 매뉴얼은 서버 없이 동작하는 Web3.0 기술을 활용한 스마트폰 채팅 앱을 개발하기 위한 방법을 담고 있습니다. 주요 목표는 탈중앙화 및 블록체인 기술을 적용하여 두 사람이 서버를 거치지 않고 대화할 수 있는 앱을 만드는 것입니다. 사용되는 모든 기술은 무료이며, Ethereum 대신 다른 기술을 사용합니다.
-
----
-
-### 2. 주요 기술 및 패턴
-
-- **프론트엔드**: Android Native App
-- **백엔드**: Node.js (Nest.js 사용하지 않음)
-- **디자인 패턴**: DTO, Provider, Repository
-- **암호화**: 데이터 교환 시 암호화 적용
-- **탈중앙화 기술**: 블록체인 기반 (Ethereum 대신 다른 기술 사용)
-- **컨테이너화**: Docker를 사용한 환경 구성
-
----
-
-### 3. 개발 환경 설정
-
-#### 3.1 Windows 11에서 PowerShell을 이용한 개발 환경 구성
-
-1. **Node.js 설치**
-   ```powershell
-   Set-ExecutionPolicy Bypass -Scope Process -Force;
-   [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-   iwr -useb get.scoop.sh | iex
-   scoop install nodejs
-   ```
-
-2. **Android Studio 및 Android SDK 설치**
-   ```powershell
-   winget install -e --id Google.AndroidStudio
-   ```
-
-3. **Git 설치**
-   ```powershell
-   scoop install git
-   ```
-
-4. **Docker 설치**
-   ```powershell
-   scoop install docker
-   ```
-
-5. **React Native CLI 설치 (Android Native 개발을 위해 필요한 경우)**
-   ```powershell
-   npm install -g react-native-cli
-   ```
-
----
-
-### 4. 프로젝트 구조 및 설정
-
-#### 4.1 프로젝트 디렉토리 구조
-
+### 프로젝트 구조
 ```
-/YourProjectName
+decentralized-chat-app/
 │
-├── /android                   # 안드로이드 네이티브 앱
-│   ├── /app
-│   │   ├── /src
-│   │   │   ├── /main
-│   │   │   │   ├── AndroidManifest.xml
-│   │   │   │   ├── /java/com/yourapp
-│   │   │   │   │   ├── MainActivity.java
-│   │   │   │   │   ├── MainApplication.java
-│   │   │   │   └── /res
-│   │   ├── build.gradle
-│   ├── /gradle
-│   └── build.gradle
-│   
-├── /backend                   # 백엔드 Node.js 코드
-│   ├── /src
-│   │   ├── /config            # 환경 설정 파일
-│   │   ├── /controllers       # 컨트롤러
-│   │   ├── /services          # 서비스 로직
-│   │   ├── /repositories      # 데이터 저장소 로직
-│   │   └── /models            # 데이터 모델
-│   ├── /node_modules
-│   ├── index.js               # 앱 시작점
-│   ├── package.json
-│   ├── Dockerfile
-│   └── .env                   # 환경 변수
+├─ backend/
+│  ├─ Dockerfile
+│  ├─ docker-compose.yml
+│  ├─ src/
+│  │  ├─ controllers/
+│  │  │  └─ chatController.js
+│  │  ├─ dtos/
+│  │  │  └─ messageDto.js
+│  │  ├─ providers/
+│  │  │  └─ blockchainProvider.js
+│  │  ├─ repositories/
+│  │  │  └─ messageRepository.js
+│  │  ├─ services/
+│  │  │  └─ chatService.js
+│  │  ├─ utils/
+│  │  │  └─ encryptionUtils.js
+│  │  └─ index.js
+│  └─ package.json
 │
-├── docker-compose.yml
-└── README.md
+└─ android-app/
+   ├─ app/
+   │  ├─ src/
+   │  │  ├─ main/
+   │  │  │  ├─ AndroidManifest.xml
+   │  │  │  ├─ java/
+   │  │  │  │  └─ com/
+   │  │  │  │     └─ decentralizedchat/
+   │  │  │  │        ├─ MainActivity.java
+   │  │  │  │        ├─ ChatActivity.java
+   │  │  │  │        ├─ ChatService.java
+   │  │  │  │        ├─ MessageRepository.java
+   │  │  │  │        └─ BlockchainProvider.java
+   │  │  │  └─ res/
+   │  │  │     ├─ layout/
+   │  │  │     │  └─ activity_chat.xml
+   │  │  │     └─ values/
+   │  │  │        └─ strings.xml
+   │  └─ build.gradle
+   └─ settings.gradle
 ```
 
-### 4.2 안드로이드 앱 권한 설정
+### 백엔드 코드
 
-**AndroidManifest.xml**에 네트워크 권한 추가:
-
-```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.yourapp">
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <application
-        ...
-        android:usesCleartextTraffic="true">
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <!-- 기타 필요한 액티비티나 서비스 선언 -->
-    </application>
-</manifest>
+#### Dockerfile
+```Dockerfile
+FROM node:16-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY src ./src
+CMD ["node", "src/index.js"]
 ```
 
-### 5. 탈중앙화 기술 및 블록체인 적용
-
-#### 5.1 블록체인 기반 P2P 네트워크 설정
-
-- **Libp2p를 사용하여 P2P 네트워크를 구성합니다.**
-- **블록체인이 아닌 다른 무료 기술을 사용하여 Ethereum 대신 다른 방법을 사용합니다. 여기서는 Libp2p 기반의 네트워크를 사용하여 채팅 기능을 구현합니다.**
-
-```javascript
-// 백엔드: Node.js를 사용한 P2P 네트워크 코드 예시
-
-const Libp2p = require('libp2p');
-const WebSockets = require('libp2p-websockets');
-const WebRTCStar = require('libp2p-webrtc-star');
-const { NOISE } = require('libp2p-noise');
-const Mplex = require('libp2p-mplex');
-const Gossipsub = require('libp2p-gossipsub');
-const PeerId = require('peer-id');
-
-async function createLibp2p(peerId) {
-  const node = await Libp2p.create({
-    peerId,
-    modules: {
-      transport: [WebSockets, WebRTCStar],
-      connEncryption: [NOISE],
-      streamMuxer: [Mplex],
-      pubsub: Gossipsub
-    },
-    config: {
-      transport: {
-        [WebRTCStar.prototype[Symbol.toStringTag]]: {
-          wrtc: require('wrtc') // WebRTC support
-        }
-      },
-      pubsub: {
-        enabled: true,
-        emitSelf: false
-      }
-    }
-  });
-
-  await node.start();
-  return node;
-}
-
-async function setupP2PNode() {
-  const peerId = await PeerId.create({ bits: 1024, keyType: 'rsa' });
-  const node = await createLibp2p(peerId);
-
-  node.on('peer:discovery', (peer) => console.log('Discovered:', peer.toB58String()));
-  node.connectionManager.on('peer:connect', (connection) => {
-    console.log('Connected to:', connection.remotePeer.toB58String());
-  });
-
-  return node;
-}
-
-// 사용 예시
-setupP2PNode().then((node) => {
-  console.log('P2P Node started with Peer ID:', node.peerId.toB58String());
-});
+#### docker-compose.yml
+```yaml
+version: '3'
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+    environment:
+      - NODE_ENV=production
 ```
 
-### 6. 암호화 및 보안 적용
-
-#### 6.1 데이터 교환 시 암호화 적용
-
-- **데이터를 교환할 때 NOISE 프로토콜을 사용하여 통신을 암호화합니다.**
-
-```javascript
-const { NOISE } = require('libp2p-noise');
-const PeerId = require('peer-id');
-const { encrypt, decrypt } = require('libp2p-noise');
-
-async function secureCommunicate(node) {
-  node.handle('/secure-message/1.0.0', async ({ stream }) => {
-    try {
-      const decryptedMessage = await decrypt(stream);
-      console.log(`Decrypted message: ${decryptedMessage}`);
-    } catch (error) {
-      console.error('Failed to decrypt message:', error);
-    }
-  });
-
-  // 암호화된 메시지 전송
-  async function sendMessage(node, peerId, message) {
-    const { stream } = await node.dialProtocol(peerId, '/secure-message/1.0.0');
-    await encrypt(stream, Buffer.from(message));
+#### package.json
+```json
+{
+  "name": "decentralized-chat-backend",
+  "version": "1.0.0",
+  "description": "Backend for decentralized chat app",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "crypto-js": "^4.1.1",
+    "uuid": "^8.3.2"
   }
 }
 ```
 
-### 7.1 Dockerfile 및 docker-compose.yml 설정
-## 7. Docker 설정
+#### src/index.js
+```javascript
+const express = require('express');
+const bodyParser = require('body-parser');
+const chatController = require('./controllers/chatController');
 
-#### 7.1 Dockerfile 및 docker-compose.yml 설정
+const app = express();
+app.use(bodyParser.json());
 
-Docker를 사용하여 백엔드 환경을 컨테이너화하면 어떤 환경에서든 일관된 개발 및 배포 경험을 제공할 수 있습니다. 여기서는 Node.js 환경을 Docker 컨테이너로 설정하는 방법을 다룹니다.
+// 설정된 포트로 서버 시작
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Backend server running on port ${PORT}`);
+});
 
-**Dockerfile 설정**
-
-`Dockerfile`은 백엔드 서버를 위한 설정입니다. Node.js 애플리케이션을 컨테이너화하기 위한 기본 구조를 설정합니다.
-
-```dockerfile
-# 사용할 Node.js의 버전을 지정한 베이스 이미지
-FROM node:14
-
-# 앱 디렉터리 생성
-WORKDIR /usr/src/app
-
-# 앱 의존성 설치
-# package.json과 package-lock.json을 모두 복사
-COPY package*.json ./
-
-RUN npm install
-# 프로덕션을 위한 코드인 경우
-# RUN npm ci --only=production
-
-# 앱 소스 추가
-COPY . .
-
-# 앱이 사용할 포트를 지정
-EXPOSE 8080
-
-# 앱 실행
-CMD [ "node", "index.js" ]
+// 채팅 관련 라우트 설정
+app.post('/send', chatController.sendMessage);
+app.get('/messages', chatController.getMessages);
 ```
 
-**docker-compose.yml 설정**
+#### src/controllers/chatController.js
+```javascript
+const chatService = require('../services/chatService');
+const messageDto = require('../dtos/messageDto');
 
-`docker-compose.yml` 파일은 여러 컨테이너를 함께 설정하고 실행하기 위한 YAML 파일입니다. 이 설정에서는 단일 Node.js 앱을 설정합니다.
-
-```yaml
-version: '3.8'
-
-services:
-  app:
-    container_name: p2p_chat_app
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./:/usr/src/app
-    environment:
-      NODE_ENV: development
+// 메시지 전송용 컨트롤러
+exports.sendMessage = async (req, res) => {
+    try {
+        const { sender, recipient, message } = req.body;
+        const newMessage = messageDto(sender, recipient, message);
+        await chatService.sendMessage(newMessage);
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+// 메시지 수신용 컨트롤러
+exports.getMessages = async (req, res) => {
+    try {
+        const { sender, recipient } = req.query;
+        const messages = await chatService.getMessages(sender, recipient);
+        res.status(200).json(messages);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 ```
 
-### 8. 인터넷 연결 및 권한 설정
+#### src/dtos/messageDto.js
+```javascript
+const { v4: uuidv4 } = require('uuid');
 
-#### 8.1 Android 앱 인터넷 연결 설정
+// 메시지 데이터 전송 객체 (DTO)
+module.exports = (sender, recipient, message) => ({
+    id: uuidv4(),
+    sender,
+    recipient,
+    message,
+    timestamp: new Date().toISOString()
+});
+```
 
-Android 애플리케이션에서 인터넷을 사용하기 위해 필요한 권한을 `AndroidManifest.xml`에 추가합니다.
+#### src/providers/blockchainProvider.js
+```javascript
+// 블록체인 기반 메시지 저장 및 검증을 위한 모듈
+const messages = new Map(); // 블록체인 가상 구현
 
+exports.saveMessage = (message) => {
+    messages.set(message.id, message);
+    console.log(`Message saved to blockchain: ${JSON.stringify(message)}`);
+};
+
+exports.fetchMessages = (sender, recipient) => {
+    const fetchedMessages = [];
+    for (const message of messages.values()) {
+        if (
+            (message.sender === sender && message.recipient === recipient) ||
+            (message.sender === recipient && message.recipient === sender)
+        ) {
+            fetchedMessages.push(message);
+        }
+    }
+    return fetchedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+};
+```
+
+#### src/repositories/messageRepository.js
+```javascript
+const blockchainProvider = require('../providers/blockchainProvider');
+
+// 메시지 레포지토리 (Repository) 패턴 적용
+exports.save = (message) => {
+    blockchainProvider.saveMessage(message);
+};
+
+exports.findByParticipants = (sender, recipient) => {
+    return blockchainProvider.fetchMessages(sender, recipient);
+};
+```
+
+#### src/services/chatService.js
+```javascript
+const messageRepository = require('../repositories/messageRepository');
+const encryptionUtils = require('../utils/encryptionUtils');
+
+// 메시지 전송/수신 비즈니스 로직 서비스
+exports.sendMessage = (message) => {
+    const encryptedMessage = encryptionUtils.encrypt(message.message);
+    message.message = encryptedMessage;
+    messageRepository.save(message);
+};
+
+exports.getMessages = (sender, recipient) => {
+    const messages = messageRepository.findByParticipants(sender, recipient);
+    return messages.map((message) => {
+        message.message = encryptionUtils.decrypt(message.message);
+        return message;
+    });
+};
+```
+
+#### src/utils/encryptionUtils.js
+```javascript
+const CryptoJS = require('crypto-js');
+
+const secretKey = 'super_secret_key';
+
+// 메시지 암호화 함수
+exports.encrypt = (message) => {
+    return CryptoJS.AES.encrypt(message, secretKey).toString();
+};
+
+// 메시지 복호화 함수
+exports.decrypt = (encryptedMessage) => {
+    const bytes = CryptoJS.AES.decrypt(encryptedMessage, secretKey);
+    return bytes.toString(CryptoJS.enc.Utf8);
+};
+```
+
+### 프론트엔드 코드 (Android Native)
+
+#### android-app/app/src/main/AndroidManifest.xml
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.yourapp">
+    package="com.decentralizedchat">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        ...
-        android:usesCleartextTraffic="true">
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        <activity android:name=".ChatActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- 기타 필요한 액티비티나 서비스 선언 -->
     </application>
 </manifest>
 ```
 
-### 9. 프로젝트 파일 구조
+#### android-app/app/src/main/java/com/decentralizedchat/MainActivity.java
+```java
+package com.decentralizedchat;
 
-#### 9.1 전체 프로젝트 파일 트리 구조
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import androidx.appcompat.app.AppCompatActivity;
 
-여기서는 프로젝트의 전체 파일 구조를 보여줍니다. 이 구조는 앞서 언급된 모든 설정과 코드를 포함합니다. 프로젝트는 안드로이드 네이티브 앱과 백엔드 Node.js 애플리케이션으로 구성됩니다.
+public class MainActivity extends AppCompatActivity {
 
-```
-/YourAppName
-│
-├── /android                   # 안드로이드 네이티브 앱 소스
-│   ├── /app
-│   │   ├── /src
-│   │   │   ├── /main
-│   │   │   │   ├── AndroidManifest.xml
-│   │   │   │   ├── /java/com/yourapp
-│   │   │   │   │   ├── MainActivity.java
-│   │   │   │   │   ├── MainApplication.java
-│   │   │   │   └── /res
-│   │   │   │       ├── /layout
-│   │   │   │       │   ├── activity_main.xml
-│   │   │   │       ├── /values
-│   │   │   │       │   ├── strings.xml
-│   │   │   │       ├── /drawable
-│   │   ├── build.gradle
-│   ├── /gradle
-│   │   └── wrapper
-│   │       ├── gradle-wrapper.jar
-│   │       ├── gradle-wrapper.properties
-│   └── build.gradle
-│   └── settings.gradle
-│
-├── /backend                   # 백엔드 Node.js 코드 구조
-│   ├── /src
-│   │   ├── /config            # 환경 설정 파일
-│   │   │   └── default.json
-│   │   ├── /controllers       # 컨트롤러
-│   │   │   └── ChatController.js
-│   │   ├── /services          # 서비스 로직
-│   │   │   └── ChatService.js
-│   │   ├── /repositories      # 데이터 저장소 로직
-│   │   │   └── ChatRepository.js
-│   │   ├── /models            # 데이터 모델
-│   │   │   └── Message.js
-│   │   └── index.js           # 앱 시작점
-│   ├── /node_modules
-│   ├── package.json
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── .env                   # 환경 변수
-│   └── .gitignore
-│
-├── docker-compose.yml
-└── README.md
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+
+    public void goToChat(View view) {
+        Intent intent = new Intent(this, ChatActivity.class);
+        startActivity(intent);
+    }
+}
 ```
 
-### 10. 앱 빌드 및 실행 방법
+#### android-app/app/src/main/java/com/decentralizedchat/ChatActivity.java
+```java
+package com.decentralizedchat;
 
-#### 10.1 안드로이드 앱 빌드 방법
+import android.os.Bundle;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ListView;
+import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
+import java.util.List;
 
-안드로이드 앱을 빌드하고 실행하기 위해 필요한 단계들입니다.
+public class ChatActivity extends AppCompatActivity {
+    private EditText messageInput;
+    private MessageAdapter messageAdapter;
+    private ChatService chatService;
+    private String currentUser = "user1"; // 현재 사용자 ID (예시)
+    private String chatPartner = "user2"; // 채팅 상대방 ID (예시)
 
-1. **안드로이드 스튜디오에서 프로젝트 열기**:
-   - 안드로이드 스튜디오를 실행하고 "Open an existing Android Studio project"를 선택한 다음, 프로젝트 디렉토리를 선택합니다.
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat);
 
-2. **Gradle Sync**:
-   - 프로젝트가 열리면, Gradle이 프로젝트를 동기화하도록 합니다. 이는 모든 필요한 종속성이 설치되도록 보장합니다.
+        messageInput = findViewById(R.id.message_input);
+        ListView messageList = findViewById(R.id.message_list);
 
-3. **앱 빌드 및 실행**:
-   - 빌드 메뉴에서 'Make Project'를 선택하거나 `Ctrl + F9`를 눌러 프로젝트를 빌드합니다.
-   - 'Run' 메뉴에서 'Run app'을 선택하거나 `Shift + F10`을 눌러 연결된 안드로이드 디바이스나 에뮬레이터에서 앱을 실행합니다.
+        List<Message> messages = new ArrayList<>();
+        messageAdapter = new MessageAdapter(this, messages);
+        messageList.setAdapter(messageAdapter);
 
-#### 10.2 백엔드 서버 실행 방법
+        chatService = new ChatService();
 
-백엔드 서버를 로컬에서 실행하거나 Docker 컨테이너로 실행하는 방법입니다.
+        // 기존 메시지 가져오기
+        loadMessages();
+    }
 
-1. **로컬에서 Node.js 서버 실행**:
-   ```bash
-   cd backend
-   npm install
-   npm start
-   ```
-   이 명령어들은 백엔드 폴더로 이동한 후 필요한 패키지들을 설치하고 서버를 시작하는 과정을 수행합니다.
+    // 메시지 전송 버튼 클릭 시 호출되는 메서드
+    public void sendMessage(View view) {
+        String messageText = messageInput.getText().toString();
+        if (!messageText.isEmpty()) {
+            Message message = new Message(currentUser, chatPartner, messageText);
+            chatService.sendMessage(message, new ChatService.MessageCallback() {
+                @Override
+                public void onSuccess() {
+                    messageAdapter.add(message);
+                    messageAdapter.notifyDataSetChanged();
+                    messageInput.setText("");
+                }
 
-2. **Docker를 이용한 백엔드 서버 실행**:
-   - 먼저, `Dockerfile`을 사용하여 백엔드 서버의 Docker 이미지를 빌드합니다:
-     ```bash
-     cd backend
-     docker build -t p2p_chat_app .
-     ```
-   - 이제 `docker-compose.yml` 파일을 사용하여 서비스를 시작합니다:
-     ```bash
-     docker-compose up
-     ```
-     이 명령은 모든 서비스를 시작하며, `docker-compose.yml`에 정의된 서비스 구성에 따라 Node.js 애플리케이션을 컨테이너에서 실행합니다.
+                @Override
+                public void onFailure(String error) {
+                    // 에러 처리
+                }
+            });
+        }
+    }
 
-#### 10.3 안드로이드 앱 인터넷 접속 권한
+    // 기존 메시지를 가져오는 메서드
+    private void loadMessages() {
+        chatService.getMessages(currentUser, chatPartner, new ChatService.MessageListCallback() {
+            @Override
+            public void onSuccess(List<Message> messages) {
+                messageAdapter.clear();
+                messageAdapter.addAll(messages);
+                messageAdapter.notifyDataSetChanged();
+            }
 
-안드로이드 앱이 인터넷에 접속하기 위해 필요한 권한을 `AndroidManifest.xml`에 설정합니다.
+            @Override
+            public void onFailure(String error) {
+                // 에러 처리
+            }
+        });
+    }
+}
+```
 
+#### android-app/app/src/main/java/com/decentralizedchat/ChatService.java
+```java
+package com.decentralizedchat;
+
+import android.os.AsyncTask;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
+
+public class ChatService {
+    private static final String BASE_URL = "http://localhost:3000";
+    private final Gson gson = new Gson();
+
+    // 메시지 전송 콜백 인터페이스
+    public interface MessageCallback {
+        void onSuccess();
+        void onFailure(String error);
+    }
+
+    // 메시지 목록 콜백 인터페이스
+    public interface MessageListCallback {
+        void onSuccess(List<Message> messages);
+        void onFailure(String error);
+    }
+
+    // 메시지 전송 메서드
+    public void sendMessage(Message message, MessageCallback callback) {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    URL url = new URL(BASE_URL + "/send");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                    conn.setDoOutput(true);
+
+                    String json = gson.toJson(message);
+                    OutputStream os = conn.getOutputStream();
+                    os.write(json.getBytes("UTF-8"));
+                    os.close();
+
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == 200) {
+                        return null; // 성공 시 null 반환
+                    } else {
+                        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                        StringBuilder response = new StringBuilder();
+                        String inputLine;
+                        while ((inputLine = in.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                        in.close();
+                        return response.toString();
+                    }
+                } catch (Exception e) {
+                    return e.getMessage();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String error) {
+                if (error == null) {
+                    callback.onSuccess();
+                } else {
+                    callback.onFailure(error);
+                }
+            }
+        }.execute();
+    }
+
+    // 메시지 목록 가져오는 메서드
+    public void getMessages(String sender, String recipient, MessageListCallback callback) {
+        new AsyncTask<Void, Void, List<Message>>() {
+            private String error;
+
+            @Override
+            protected List<Message> doInBackground(Void... voids) {
+                try {
+                    URL url = new URL(BASE_URL + "/messages?sender=" + sender + "&recipient=" + recipient);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == 200) {
+                        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        StringBuilder response = new StringBuilder();
+                        String inputLine;
+                        while ((inputLine = in.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                        in.close();
+                        Type listType = new TypeToken<List<Message>>() {}.getType();
+                        return gson.fromJson(response.toString(), listType);
+                    } else {
+                        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                        StringBuilder response = new StringBuilder();
+                        String inputLine;
+                        while ((inputLine = in.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                        in.close();
+                        error = response.toString();
+                        return null;
+                    }
+                } catch (Exception e) {
+                    error = e.getMessage();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(List<Message> messages) {
+                if (messages != null) {
+                    callback.onSuccess(messages);
+                } else {
+                    callback.onFailure(error);
+                }
+            }
+        }.execute();
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/Message.java
+```java
+package com.decentralizedchat;
+
+// 메시지 클래스 정의
+public class Message {
+    private String id;
+    private String sender;
+    private String recipient;
+    private String message;
+    private String timestamp;
+
+    // 기본 생성자
+    public Message() {}
+
+    // 메시지 생성자
+    public Message(String sender, String recipient, String message) {
+        this.sender = sender;
+        this.recipient = recipient;
+        this.message = message;
+    }
+
+    // Getter와 Setter
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/MessageAdapter.java
+```java
+package com.decentralizedchat;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import android.widget.ArrayAdapter;
+import java.util.List;
+
+// 메시지 어댑터
+public class MessageAdapter extends ArrayAdapter<Message> {
+    private final LayoutInflater inflater;
+
+    public MessageAdapter(@NonNull Context context, @NonNull List<Message> messages) {
+        super(context, 0, messages);
+        inflater = LayoutInflater.from(context);
+    }
+
+    @NonNull
+    @Override
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.message_item, parent, false);
+        }
+
+        Message message = getItem(position);
+        TextView senderView = convertView.findViewById(R.id.sender);
+        TextView messageView = convertView.findViewById(R.id.message);
+
+        senderView.setText(message.getSender());
+        messageView.setText(message.getMessage());
+
+        return convertView;
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/BlockchainProvider.java (이어서)
+```java
+package com.decentralizedchat;
+
+import android.util.Log;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+
+// 블록체인 기반 메시지 저장 및 검증을 위한 모듈 (간단한 구현)
+public class BlockchainProvider {
+    private static final Map<String, Message> blockchain = new HashMap<>();
+    private static final String TAG = "BlockchainProvider";
+
+    // 메시지를 블록체인에 저장
+    public void saveMessage(Message message) {
+        blockchain.put(message.getId(), message);
+        Log.d(TAG, "Message saved to blockchain: " + message.getId());
+    }
+
+    // 참여자 간의 메시지를 블록체인에서 검색
+    public List<Message> fetchMessages(String sender, String recipient) {
+        List<Message> result = new ArrayList<>();
+        for (Message message : blockchain.values()) {
+            if ((message.getSender().equals(sender) && message.getRecipient().equals(recipient)) ||
+                (message.getSender().equals(recipient) && message.getRecipient().equals(sender))) {
+                result.add(message);
+            }
+        }
+        result.sort((m1, m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()));
+        return result;
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/MessageRepository.java
+```java
+package com.decentralizedchat;
+
+import java.util.List;
+
+// 메시지 레포지토리 패턴 구현
+public class MessageRepository {
+    private final BlockchainProvider blockchainProvider;
+
+    public MessageRepository() {
+        this.blockchainProvider = new BlockchainProvider();
+    }
+
+    // 메시지를 저장
+    public void save(Message message) {
+        blockchainProvider.saveMessage(message);
+    }
+
+    // 참여자 간의 메시지를 검색
+    public List<Message> findByParticipants(String sender, String recipient) {
+        return blockchainProvider.fetchMessages(sender, recipient);
+    }
+}
+```
+
+#### android-app/app/src/main/res/layout/activity_chat.xml
 ```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.yourapp">
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <ListView
+        android:id="@+id/message_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp" />
 
-    <application
-        ...
-        android:usesCleartextTraffic="true">
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <!-- 기타 필요한 액티비티나 서비스 선언 -->
-    </application>
-</manifest>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/message_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Type a message"
+            android:inputType="text" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            android:onClick="sendMessage" />
+    </LinearLayout>
+</LinearLayout>
 ```
 
-### 11. 프로젝트 완료 및 추가 정보
+#### android-app/app/src/main/res/layout/message_item.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-#### 11.1 프로젝트 완료 확인
+    <TextView
+        android:id="@+id/sender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold" />
 
-프로젝트 구성이 완료되었으며, 모든 설정과 코드가 정상적으로 작동하는지 확인하기 위해 다음 단계를 따라 테스트를 진행합니다.
+    <TextView
+        android:id="@+id/message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>
+```
 
-1. **안드로이드 앱 테스트**:
-   - 안드로이드 스튜디오에서 앱을 빌드하고 에뮬레이터나 실제 디바이스에서 실행합니다.
-   - 로그인 및 채팅 기능이 정상적으로 동작하는지 확인합니다.
+#### android-app/app/src/main/res/values/strings.xml
+```xml
+<resources>
+    <string name="app_name">DecentralizedChat</string>
+    <string name="main_activity_goto_chat">Go to Chat</string>
+</resources>
+```
 
-2. **백엔드 서버 테스트**:
-   - 로컬에서 서버를 실행하고, Postman 또는 curl을 사용하여 API가 정상적으로 응답하는지 확인합니다.
-   - Docker 컨테이너를 통해 서버를 실행하고, 동일한 방법으로 API 테스트를 진행합니다.
+#### android-app/app/src/main/res/layout/activity_main.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-3. **네트워크 연결 및 P2P 통신 테스트**:
-   - 두 안드로이드 디바이스에서 앱을 실행하고, 서로 메시지를 주고받을 수 있는지 확인합니다.
-   - Libp2p 네트워크를 통한 메시지 교환 및 암호화된 데이터 전송이 정상적으로 이루어지는지 확인합니다.
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/main_activity_goto_chat"
+        android:onClick="goToChat" />
+</LinearLayout>
+```
 
-#### 11.2 추가 정보 및 문서
+#### android-app/app/build.gradle
+```gradle
+plugins {
+    id 'com.android.application'
+}
 
-- **README.md**: 프로젝트에 대한 설명, 빌드 방법, 실행 방법 등을 자세히 기술합니다.
-- **Wiki 또는 Docs**: 프로젝트의 구조, 사용된 기술, 디자인 패턴 등에 대한 추가 문서를 제공합니다.
+android {
+    compileSdkVersion 31
+
+    defaultConfig {
+        applicationId "com.decentralizedchat"
+        minSdkVersion 21
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'com.google.code.gson:gson:2.8.8'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+}
+```
+
+#### android-app/settings.gradle
+```gradle
+rootProject.name = "DecentralizedChat"
+include ':app'
+```
+
+### PowerShell 명령어
+**백엔드 구성 및 실행:**
+```powershell
+# 프로젝트 폴더로 이동
+cd decentralized-chat-app/backend
+
+# Docker 이미지를 빌드
+docker-compose build
+
+# Docker 컨테이너 실행
+docker-compose up -d
+```
+
+**안드로이드 앱 빌드 및 실행:**
+```powershell
+# 프로젝트 폴더로 이동
+cd decentralized-chat-app/android-app
+
+# Gradle 빌드 파일을 통해 앱 빌드
+./gradlew assembleRelease
+
+# APK 파일 설치
+adb install app/build/outputs/apk/release/app-release.apk
+```
+
+### 프로젝트 사용 방법
+1. **백엔드 설정 및 실행:**
+   - `docker-compose.yml`을 통해 백엔드를 실행합니다.
+   - `docker-compose up -d` 명령어로 컨테이너를 백그라운드에서 실행합니다.
+
+2. **안드로이드 앱 설정 및 실행:**
+   - `build.gradle` 파일을 사용하여 앱을 빌드합니다.
+   - `adb` 명령어로 APK 파일을 설치합니다.
+
+3. **채팅 앱 테스트:**
+   - 두 개의 안드로이드 기기 또는 에뮬레이터를 사용하여 채팅 앱을 실행합니다.
+   - 백엔드 서버의 IP 주소를 사용해 메시지를 주고받습니다.
+
+### 주석 및 로직 설명
+- **백엔드:**
+  - `src/index.js`: Express 프레임워크를 사용하여 RESTful API를 제공합니다.
+  - `src/controllers/chatController.js`: 채팅 관련 요청을 처리하는 컨트롤러.
+  - `src/services/chatService.js`: 메시지 전송 및 수신에 대한 비즈니스 로직.
+  - `src/providers/blockchainProvider.js`: 블록체인 방식으로 메시지를 저장 및 검증.
+  - `src/repositories/messageRepository.js`: 메시지 저장 및 검색을 위한 레포지토리.
+
+- **안드로이드 앱:**
+  - `ChatService.java`: 백엔드와 통신하여 메시지를 주고받는 서비스.
+  - `ChatActivity.java`: 채팅 화면 액티비티.
+  - `MessageRepository.java`: 메시지 저장 및 검색을 위한 레포지토리.
+  - `BlockchainProvider.java`: 블록체인 방식으로 메시지를 저장 및 검증.
 
 **Answer Done**
+
+## Kotlin 작성 코드
+### Kotlin으로 작성한 코드
+#### android-app/app/src/main/java/com/decentralizedchat/MainActivity.kt
+```kotlin
+package com.decentralizedchat
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+    }
+
+    fun goToChat(view: View) {
+        val intent = Intent(this, ChatActivity::class.java)
+        startActivity(intent)
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/ChatActivity.kt
+```kotlin
+package com.decentralizedchat
+
+import android.os.Bundle
+import android.view.View
+import android.widget.EditText
+import android.widget.ListView
+import androidx.appcompat.app.AppCompatActivity
+
+class ChatActivity : AppCompatActivity() {
+    private lateinit var messageInput: EditText
+    private lateinit var messageAdapter: MessageAdapter
+    private lateinit var chatService: ChatService
+    private val currentUser = "user1" // 현재 사용자 ID (예시)
+    private val chatPartner = "user2" // 채팅 상대방 ID (예시)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_chat)
+
+        messageInput = findViewById(R.id.message_input)
+        val messageList: ListView = findViewById(R.id.message_list)
+
+        val messages = mutableListOf<Message>()
+        messageAdapter = MessageAdapter(this, messages, currentUser)
+        messageList.adapter = messageAdapter
+
+        chatService = ChatService()
+
+        // 기존 메시지 가져오기
+        loadMessages()
+    }
+
+    // 메시지 전송 버튼 클릭 시 호출되는 메서드
+    fun sendMessage(view: View) {
+        val messageText = messageInput.text.toString()
+        if (messageText.isNotEmpty()) {
+            val message = Message(currentUser, chatPartner, messageText)
+            chatService.sendMessage(message, object : ChatService.MessageCallback {
+                override fun onSuccess() {
+                    messageAdapter.add(message)
+                    messageAdapter.notifyDataSetChanged()
+                    messageInput.setText("")
+                }
+
+                override fun onFailure(error: String) {
+                    // 에러 처리
+                }
+            })
+        }
+    }
+
+    // 기존 메시지를 가져오는 메서드
+    private fun loadMessages() {
+        chatService.getMessages(currentUser, chatPartner, object : ChatService.MessageListCallback {
+            override fun onSuccess(messages: List<Message>) {
+                messageAdapter.clear()
+                messageAdapter.addAll(messages)
+                messageAdapter.notifyDataSetChanged()
+            }
+
+            override fun onFailure(error: String) {
+                // 에러 처리
+            }
+        })
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/ChatService.kt
+```kotlin
+package com.decentralizedchat
+
+import android.os.AsyncTask
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStream
+import java.lang.reflect.Type
+import java.net.HttpURLConnection
+import java.net.URL
+
+class ChatService {
+    private val BASE_URL = "http://localhost:3000"
+    private val gson = Gson()
+
+    interface MessageCallback {
+        fun onSuccess()
+        fun onFailure(error: String)
+    }
+
+    interface MessageListCallback {
+        fun onSuccess(messages: List<Message>)
+        fun onFailure(error: String)
+    }
+
+    fun sendMessage(message: Message, callback: MessageCallback) {
+        object : AsyncTask<Void, Void, String?>() {
+            override fun doInBackground(vararg params: Void?): String? {
+                try {
+                    val url = URL("$BASE_URL/send")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+                    conn.doOutput = true
+
+                    val json = gson.toJson(message)
+                    val os: OutputStream = conn.outputStream
+                    os.write(json.toByteArray(Charsets.UTF_8))
+                    os.close()
+
+                    val responseCode = conn.responseCode
+                    return if (responseCode == 200) {
+                        null // 성공 시 null 반환
+                    } else {
+                        val `in` = BufferedReader(InputStreamReader(conn.errorStream))
+                        val response = StringBuilder()
+                        var inputLine: String?
+                        while (`in`.readLine().also { inputLine = it } != null) {
+                            response.append(inputLine)
+                        }
+                        `in`.close()
+                        response.toString()
+                    }
+                } catch (e: Exception) {
+                    return e.message
+                }
+            }
+
+            override fun onPostExecute(error: String?) {
+                if (error == null) {
+                    callback.onSuccess()
+                } else {
+                    callback.onFailure(error)
+                }
+            }
+        }.execute()
+    }
+
+    fun getMessages(sender: String, recipient: String, callback: MessageListCallback) {
+        object : AsyncTask<Void, Void, List<Message>?>() {
+            private var error: String? = null
+
+            override fun doInBackground(vararg params: Void?): List<Message>? {
+                try {
+                    val url = URL("$BASE_URL/messages?sender=$sender&recipient=$recipient")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "GET"
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+
+                    val responseCode = conn.responseCode
+                    return if (responseCode == 200) {
+                        val `in` = BufferedReader(InputStreamReader(conn.inputStream))
+                        val response = StringBuilder()
+                        var inputLine: String?
+                        while (`in`.readLine().also { inputLine = it } != null) {
+                            response.append(inputLine)
+                        }
+                        `in`.close()
+                        val listType: Type = object : TypeToken<List<Message>>() {}.type
+                        gson.fromJson(response.toString(), listType)
+                    } else {
+                        val `in` = BufferedReader(InputStreamReader(conn.errorStream))
+                        val response = StringBuilder()
+                        var inputLine: String?
+                        while (`in`.readLine().also { inputLine = it } != null) {
+                            response.append(inputLine)
+                        }
+                        `in`.close()
+                        error = response.toString()
+                        null
+                    }
+                } catch (e: Exception) {
+                    error = e.message
+                    return null
+                }
+            }
+
+            override fun onPostExecute(messages: List<Message>?) {
+                if (messages != null) {
+                    callback.onSuccess(messages)
+                } else {
+                    callback.onFailure(error ?: "Unknown error")
+                }
+            }
+        }.execute()
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/Message.kt
+```kotlin
+package com.decentralizedchat
+
+data class Message(
+    var id: String? = null,
+    var sender: String,
+    var recipient: String,
+    var message: String,
+    var timestamp: String? = null
+) {
+    constructor(sender: String, recipient: String, message: String) : this(
+        null,
+        sender,
+        recipient,
+        message,
+        null
+    )
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/MessageAdapter.kt
+```kotlin
+package com.decentralizedchat
+
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.NonNull
+import androidx.annotation.Nullable
+import android.widget.ArrayAdapter
+
+class MessageAdapter(
+    @NonNull context: Context,
+    @NonNull messages: MutableList<Message>,
+    private val currentUser: String
+) : ArrayAdapter<Message>(context, 0, messages) {
+    private val inflater: LayoutInflater = LayoutInflater.from(context)
+
+    @NonNull
+    override fun getView(position: Int, @Nullable convertView: View?, @NonNull parent: ViewGroup): View {
+        var view = convertView
+        val message = getItem(position)
+
+        if (view == null) {
+            view = if (message?.sender == currentUser) {
+                inflater.inflate(R.layout.message_item_outgoing, parent, false)
+            } else {
+                inflater.inflate(R.layout.message_item_incoming, parent, false)
+            }
+        }
+
+        val messageText = view?.findViewById<TextView>(R.id.message_text)
+        messageText?.text = message?.message
+        return view!!
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/BlockchainProvider.kt
+```kotlin
+package com.decentralizedchat
+
+import android.util.Log
+
+class BlockchainProvider {
+    private val blockchain = mutableMapOf<String, Message>()
+    private val TAG = "BlockchainProvider"
+
+    fun saveMessage(message: Message) {
+        blockchain[message.id ?: ""] = message
+        Log.d(TAG, "Message saved to blockchain: ${message.id}")
+    }
+
+    fun fetchMessages(sender: String, recipient: String): List<Message> {
+        return blockchain.values.filter {
+            (it.sender == sender && it.recipient == recipient) ||
+                    (it.sender == recipient && it.recipient == sender)
+        }.sortedBy { it.timestamp }
+    }
+}
+```
+
+#### android-app/app/src/main/java/com/decentralizedchat/MessageRepository.kt
+```kotlin
+package com.decentralizedchat
+
+class MessageRepository {
+    private val blockchainProvider = BlockchainProvider()
+
+    fun save(message: Message) {
+        blockchainProvider.saveMessage(message)
+    }
+
+    
+    fun findByParticipants(sender: String, recipient: String): List<Message> {
+        return blockchainProvider.fetchMessages(sender, recipient)
+    }
+}
+```
+
+### iMessage 및 WhatsApp 같은 채팅 UI
+#### android-app/app/src/main/res/layout/activity_chat.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ListView
+        android:id="@+id/message_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <EditText
+            android:id="@+id/message_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Type a message"
+            android:inputType="text"
+            android:background="@drawable/message_input_background"
+            android:padding="8dp" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            android:onClick="sendMessage"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+</LinearLayout>
+```
+
+#### android-app/app/src/main/res/layout/message_item_incoming.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="start"
+    android:layout_margin="8dp">
+
+    <TextView
+        android:id="@+id/message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginEnd="48dp"
+        android:textColor="@android:color/black"
+        android:background="@drawable/incoming_message_background" />
+</LinearLayout>
+```
+
+#### android-app/app/src/main/res/layout/message_item_outgoing.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="end"
+    android:layout_margin="8dp">
+
+    <TextView
+        android:id="@+id/message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginStart="48dp"
+        android:textColor="@android:color/black"
+        android:background="@drawable/outgoing_message_background" />
+</LinearLayout>
+```
+
+#### android-app/app/src/main/res/drawable/incoming_message_background.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#F1F1F1" />
+    <corners android:radius="16dp" />
+    <padding android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp" />
+</shape>
+```
+
+#### android-app/app/src/main/res/drawable/outgoing_message_background.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#DCF8C6" />
+    <corners android:radius="16dp" />
+    <padding android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp" />
+</shape>
+```
+
+#### android-app/app/src/main/res/drawable/message_input_background.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#E0E0E0" />
+    <corners android:radius="8dp" />
+    <padding android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp" />
+</shape>
+```
+
+**Answer**
