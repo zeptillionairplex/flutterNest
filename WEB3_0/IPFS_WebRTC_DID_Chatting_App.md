@@ -572,14 +572,14 @@ dependencies {
 
 ### 2.6 실행 방법
 1. 프로젝트 디렉토리로 이동:
-    ```powershell
-    cd chat-app/frontend/app
-    ```
+```powershell
+cd chat-app/frontend/app
+```
 2. Gradle 빌드 및 실행:
-    ```powershell
-    ./gradlew assembleDebug
-    adb install -r build/outputs/apk/debug/app-debug.apk
-    ```
+```powershell
+./gradlew assembleDebug
+adb install -r build/outputs/apk/debug/app-debug.apk
+```
 
 ## 전체 프로젝트 파일 구조
 ```
@@ -635,7 +635,6 @@ chat-app/
 
 ## README.md
 **README.md**
-```markdown
 # Chat App - Decentralized Chat Application
 
 ## Project Overview
@@ -716,38 +715,38 @@ chat-app/frontend/app/
 ## Getting Started
 ### Backend
 1. Navigate to the backend directory:
-    ```powershell
-    cd chat-app/backend
-    ```
+```powershell
+cd chat-app/backend
+```
 2. Build and run the Docker container:
-    ```powershell
-    docker-compose up --build
-    ```
+```powershell
+docker-compose up --build
+```
 3. The backend server will be available at `http://localhost:3000`.
 
 ### Frontend
 1. Navigate to the frontend directory:
-    ```powershell
-    cd chat-app/frontend/app
-    ```
+```powershell
+cd chat-app/frontend/app
+```
 2. Build and install the app:
-    ```powershell
-    ./gradlew assembleDebug
-    adb install -r build/outputs/apk/debug/app-debug.apk
-    ```
+```powershell
+./gradlew assembleDebug
+adb install -r build/outputs/apk/debug/app-debug.apk
+```
 3. Open the installed app on your Android device or emulator.
 
 ## Endpoints
 ### Backend Endpoints
 - **POST /send**: Send a message to a specific topic.
-  - Request:
-    ```json
-    {
-      "topic": "general",
-      "message": "Hello, World!"
-    }
-    ```
-  - Response: `200 OK`
+- Request:
+```json
+{
+  "topic": "general",
+  "message": "Hello, World!"
+}
+```
+- Response: `200 OK`
 
 - **GET /subscribe/:topic**: Subscribe to a specific topic and receive messages.
 
@@ -772,33 +771,33 @@ chat-app/frontend/app/
 ## Powershell 명령어
 ### Docker 설치 및 실행
 1. Windows에서 Docker Desktop 설치:
-    ```powershell
-    Invoke-WebRequest -Uri "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe" -OutFile "DockerDesktopInstaller.exe"
-    Start-Process -FilePath "DockerDesktopInstaller.exe" -ArgumentList "/SILENT" -Wait
-    ```
+```powershell
+Invoke-WebRequest -Uri "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe" -OutFile "DockerDesktopInstaller.exe"
+Start-Process -FilePath "DockerDesktopInstaller.exe" -ArgumentList "/SILENT" -Wait
+```
 
 2. Docker 서비스 시작:
-    ```powershell
-    Start-Service docker
-    ```
+```powershell
+Start-Service docker
+```
 
 ### 프로젝트 클론 및 실행
 1. Git을 통해 프로젝트를 클론:
-    ```powershell
-    git clone https://github.com/your-username/chat-app.git
-    ```
+```powershell
+git clone https://github.com/your-username/chat-app.git
+```
 
 2. Docker 빌드 및 실행:
-    ```powershell
-    cd chat-app/backend
-    docker-compose up --build
-    ```
+```powershell
+cd chat-app/backend
+docker-compose up --build
+```
 
 3. 프론트엔드 앱 빌드 및 설치:
-    ```powershell
-    cd ../frontend/app
-    ./gradlew assembleDebug
-    adb install -r build/outputs/apk/debug/app-debug.apk
-    ```
+```powershell
+cd ../frontend/app
+./gradlew assembleDebug
+adb install -r build/outputs/apk/debug/app-debug.apk
+```
 
-"Answer Done
+"Answer Done"
