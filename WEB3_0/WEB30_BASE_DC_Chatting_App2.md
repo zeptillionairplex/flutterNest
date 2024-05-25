@@ -3,18 +3,22 @@
 
 ## Question Prompt - 이 질문과 아래 내용을 조합해서 app을 만든다.
 ```bash
-위에 올린 내용과 다음에 올리는 질문을 조합해서 내가 원하는 서버없이 작동하는 web3.0 기술을 응용한 탈중앙화 서버가 완전 없이 작동하는 스마트폰 채팅앱을 만들어줘. 그리고 파일 트리에 있는 파일을 다 작성해주고, 주석으로 간단하게 코드를 넘기지 말고 구체적인 로직을 경력 100년의 개발자 입장에서 작성해줘. "Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology without ipfs 
+다음에 올리는 질문(""에 둘러싸인)을 조합해서 내가 원하는 서버없이 작동하는 web3.0 기술을 응용한 탈중앙화 서버가 완전 없이 작동하는
+스마트폰 채팅앱을 만들어줘. 그리고 파일 트리에 있는 파일을 다 작성해주고, 주석으로 간단하게 코드를 넘기지 말고 구체적인 로직을
+경력 100년의 개발자 입장에서 작성해줘. 또한 주석을 달아서 어떤 기능을 담당하거나 역할을 하는건지 어떤 알고리즘을 적용한건지 
+자세하게 주석을 달아줘.
+"Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology without ipfs 
 most important thing is free. And with every detail Powershell command in Windows 11 OS for very helpful when developing. 
-The app and server should be able to operate immediately with just a simple copy and paste of the code.
+The app and server should be able to operate immediately with just a simple copy and paste of the code.  
 Most import thing is adapting a blockchain base decentralized serverless technology.  
 Using DTO, Provider, Repository Design Pattern all front-end, back-end code and file. 
-1. Answer as a high end software developer with 100 years of experience.
+1. Answer as a high end software developer with 100 years of experience.  
 2. Use Android Native App for the frontend.  
-3. Use Node for the backend not using Nest.js.   
-4. Ensure the app allows two people to converse without going through a server after installation.
-5. The goal is to create a serverless chat app using concepts such as decentralization and blockchain technology.
-6. Apply encryption when exchanging data over the internet.
-7. Apply free-to-use technology that doesn’t use Ethereum.
+3. Use Node for the backend not using Nest.js.  
+4. Ensure the app allows two people to converse without going through a server after installation.  
+5. The goal is to create a serverless chat app using concepts such as decentralization and blockchain technology.  
+6. Apply encryption when exchanging data over the internet.  
+7. Apply free-to-use technology that doesn’t use Ethereum.  
 8. Creating docker-compose, Dockerfile in backend code.  
 9. Tell me how to use internet in build app and show me the what permission code to put in build setting.  
 10. Show me whole project file tree structure.  
