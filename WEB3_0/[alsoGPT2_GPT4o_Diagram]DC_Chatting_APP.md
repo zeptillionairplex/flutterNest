@@ -1,5 +1,5 @@
 [im-also-a-good-gpt2-chatbot Direct_chat_tap(Volatile)](https://chat.lmsys.org/)  
-[Effective way GPT Model Step by Step Question and Solution](https://chatgpt.com/share/c5a71957-11fe-48ba-8a3f-cb7911a16298)
+[Effective way GPT Model Step by Step Question and Solution](https://chatgpt.com/share/c5a71957-11fe-48ba-8a3f-cb7911a16298)  
 [GPT-4o Answer](https://chatgpt.com/share/506158f5-c59e-475f-82a1-28106ac0c01b)  
 ## Diagram
 ```
