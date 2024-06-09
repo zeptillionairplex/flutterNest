@@ -70,7 +70,7 @@ Based on your uploaded file, diagram, and requirements, here is a structured seq
 
 #### Step 9: Using DTO, Provider, Repository Design Pattern
 **Question 9**:
-"Using the existing frontend and backend code, apply the DTO, Provider, and Repository design patterns. Integrate these patterns into the current project structure and update the existing files accordingly. Provide detailed comments explaining the role and implementation method of each pattern, and ensure that the updated code maintains the current functionality."
+"Using the existing frontend and backend code developed in the previous steps, apply the DTO, Provider, and Repository design patterns. Integrate these patterns into the current project structure and update the existing files accordingly. Provide detailed comments explaining the role and implementation method of each pattern, and ensure that the updated code maintains the current functionality."
 
 #### Step 10: Integrating Docker
 **Question 10**:
