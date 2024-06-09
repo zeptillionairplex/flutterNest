@@ -1,4 +1,4 @@
-[im-also-a-good-gpt2-chatbot Direct_chat(Volatile)](https://chat.lmsys.org/)  
+[im-also-a-good-gpt2-chatbot Direct_chat_tap(Volatile)](https://chat.lmsys.org/)  
 [GPT-4o Answer](https://chatgpt.com/share/506158f5-c59e-475f-82a1-28106ac0c01b)  
 ## Diagram
 ```
