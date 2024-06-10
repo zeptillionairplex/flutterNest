@@ -725,3 +725,148 @@ Each question will reference the uploaded content and diagram, ensuring the app 
 
 By following these structured questions, GPT will guide you through creating a fully functional decentralized chat app using Web 3.0 technology, ensuring each step builds upon the previous one and references the provided content and diagram effectively.
 
+# Question 12
+업로드한 내용을 기반으로 아래 도식과 같은 web3.0을 이용한 탈중앙화 채팅앱을 만들려고하고, 서버 같은 경우는 도식에 있는 내용과 채팅앱 사용자들이 서로 만나기만 할 수 있는 연결 장소만 제공해주는 채팅앱을 만들고 싶고, 
+"+-------------------+                +-------------------+
+|                   |                |                   |
+|   스마트폰 A      |                 |   스마트폰 B      |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | IPFS 노드    |  |                 | | IPFS 노드    |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | PubSub       |  |                | | PubSub       |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | WebRTC/Libp2p|  |                | | WebRTC/Libp2p|  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
+| +--------------+  |                | +--------------+  |
+| | DID 인증     |  |                 | | DID 인증     |  |
+| +--------------+  |                | +--------------+  |
+|                   |                |                   |
++-------------------+                +-------------------+
+
++---------------+                      +---------------+
+|               |                      |               |
+| NAT 방화벽   |                        | NAT 방화벽    |
+|               |                      |               |
++---------------+                      +---------------+
+
++---------------------------------------------------------+
+|               STUN/TURN 서버 (NAT 트래버설)              |
++---------------------------------------------------------+", 이 도식 내용과 다음 질문 내용을 조합해서 이 채팅 프로젝트를 완성할 단계별 질문을 완성해줘. "다음 내용을 위에서 답변해준 내용에 맞게 GPT에 개발을 위한 효과적인 답변으로 바꿔서 질문을 나눠줘. 
+"다음에 올리는 질문(""에 둘러싸인)과 업로드한 web3.0 파일 내용과 도식 등을 조합해서 내가 원하는 서버없이 작동하는 web3.0 기술을 응용한 탈중앙화 서버가 완전 없이 작동하는
+스마트폰 채팅앱을 만들어줘. 그리고 파일 트리에 있는 파일을 다 작성해주고, 주석으로 간단하게 코드를 넘기지 말고 구체적인 로직을
+경력 100년의 개발자 입장에서 작성해줘. 또한 주석을 달아서 어떤 기능을 담당하거나 역할을 하는건지 어떤 알고리즘을 적용한건지 
+자세하게 주석을 달아줘.
+"Objective: To create a perfect manual for building a chat app without a server using WEB 3.0 technology without ipfs 
+most important thing is free. And with every detail Powershell command in Windows 11 OS for very helpful when developing. 
+The app and server should be able to operate immediately with just a simple copy and paste of the code.  
+Most import thing is adapting a blockchain base decentralized serverless technology.  
+Using DTO, Provider, Repository Design Pattern all front-end, back-end code and file. 
+1. Answer as a high end software developer with 100 years of experience.  
+2. Use Android app in flutter for the frontend.  
+3. Use Nest.js for the backend.  
+4. In backend project, including app push function and object storage function.
+5. Ensure the app allows two people to converse without going through a server after installation.  
+6. The goal is to create a serverless chat app using concepts such as decentralization and blockchain technology.  
+7. Apply encryption when exchanging data over the internet.  
+8. Apply free-to-use technology that doesn’t use Ethereum.  
+9. Creating docker-compose, Dockerfile in backend code.  
+10. Tell me how to use internet in build app and show me the what permission code to put in build setting.  
+11. Show me whole project file tree structure.  
+12. When answer is over, show me "Answer Done".  
+" ""
+
+### Step-by-Step Questions for Building a Decentralized Chat App Using Web 3.0 Technology
+
+Based on the provided GitHub link, the uploaded file, and the diagram, here is a structured sequence of questions to guide the development of a decentralized chat app using Web 3.0 technology. These questions are designed to ensure the project is completed in a step-by-step manner, building on previous answers and references to the provided materials.
+
+#### Step 1: Project Overview and Initial Setup
+**Question 1**:
+"As a highly experienced full-stack developer with 100 years of experience, I want to create a decentralized chat app using Web 3.0 technology without a traditional server. The frontend will be an Android app in Flutter, and the backend will use Nest.js. Please provide the overall file tree structure of this project and explain the role of each file, including the frontend, backend, and configurations."
+
+#### Step 2: Frontend Basic Setup
+**Question 2**:
+"Set up a basic Flutter project for the frontend. Create an initial screen that displays 'Welcome to Decentralized Chat'. Provide detailed comments explaining the role and function of each part of the code. Include instructions on configuring the app to use the internet and add the necessary permission code to the Flutter build settings."
+
+#### Step 3: Backend Basic Setup
+**Question 3**:
+"Set up a basic Nest.js project for the backend. Include the necessary configurations for handling WebRTC, PubSub, and IPFS connections. Provide detailed comments explaining the role and configuration of each part of the code. Also, include Dockerfile and docker-compose.yml files to run the backend services in Docker."
+
+#### Step 4: Implementing IPFS and PubSub
+**Question 4**:
+"Integrate IPFS and PubSub into the frontend and backend. Ensure that both smartphones (A and B) can communicate via IPFS nodes and PubSub as shown in the provided diagram. Provide detailed comments explaining how IPFS nodes are set up and how PubSub messaging works. Include code examples for both the frontend and backend."
+
+#### Step 5: Implementing WebRTC/Libp2p
+**Question 5**:
+"Integrate WebRTC/Libp2p into the frontend and backend for direct peer-to-peer communication. Ensure that both smartphones (A and B) can establish a direct connection using WebRTC/Libp2p as illustrated in the diagram. Provide detailed comments explaining the role and configuration of each part of the code. Include code examples for both the frontend and backend."
+
+#### Step 6: Implementing DID Authentication
+**Question 6**:
+"Implement Decentralized Identifier (DID) authentication for both the frontend and backend. Ensure that users can authenticate themselves using DIDs and that the authentication process is secure. Provide detailed comments explaining the role and function of each part of the code. Include code examples for both the frontend and backend."
+
+#### Step 7: NAT Traversal with STUN/TURN Servers
+**Question 7**:
+"Set up STUN/TURN servers for NAT traversal to ensure that peer-to-peer connections can be established even behind NAT firewalls. Provide detailed comments explaining the role and configuration of each part of the code. Include code examples for both the frontend and backend."
+
+#### Step 8: Encryption and Data Security
+**Question 8**:
+"Apply encryption to the data exchanged between peers over the internet. Ensure that all communication is secure. Provide detailed comments explaining the encryption methods used and the role of each part of the code. Include code examples for both the frontend and backend."
+
+#### Step 9: Using DTO, Provider, Repository Design Pattern
+**Question 9**:
+"Using the existing frontend and backend code, apply the DTO, Provider, and Repository design patterns. Integrate these patterns into the current project structure and update the existing files accordingly. Provide detailed comments explaining the role and implementation method of each pattern, and ensure that the updated code maintains the current functionality."
+
+#### Step 10: Integrating Docker
+**Question 10**:
+"Integrate Docker into the project for easy deployment. Create Dockerfile and docker-compose.yml files for the backend. Provide detailed comments explaining the role and configuration of each part of the Docker setup. Include instructions on how to start the services using Docker."
+
+#### Step 11: Adding Push Notification and Object Storage
+**Question 11**:
+"In the backend project, include functionality for app push notifications and object storage for storing images and files. Use appropriate open-source libraries for these features. Provide detailed comments explaining the role and function of each part of the code. Include code examples and configurations."
+
+#### Step 12: Final Integration and Testing
+**Question 12**:
+"Integrate all the components developed in the previous steps into a cohesive platform. Test the entire system thoroughly, identify potential issues, and provide methods to resolve them. Provide detailed comments and explanations on how to achieve this."
+
+#### Step 13: Comprehensive Project Manual
+**Question 13**:
+"Write a comprehensive manual that explains how to follow this project from start to finish. Include the necessary commands and explanations for each step, and provide detailed instructions on deploying the application using Docker. Ensure the manual is detailed enough for someone to replicate the project with a simple copy and paste of the code."
+
+#### Step 14: Conclusion and Verification
+**Question 14**:
+"After completing the above steps, please indicate 'Answer Done' and provide a summary of the entire project with any additional tips or best practices for maintaining and scaling the decentralized chat app."
+
+---
+
+### Combining the Questions with Provided Content and Diagram
+
+Each question will reference the provided GitHub link, uploaded file, and diagram, ensuring the app aligns with the Web 3.0 technologies and decentralized architecture:
+
+**Question Example with Reference**:
+"Using the provided Web 3.0 technologies and the diagram, integrate IPFS and PubSub into the frontend and backend. Ensure that both smartphones (A and B) can communicate via IPFS nodes and PubSub as shown in the diagram. Provide detailed comments explaining how IPFS nodes are set up and how PubSub messaging works. Include code examples for both the frontend and backend."
+
+---
+
+### Full Sequence of Questions for GPT
+
+1. **Overall Structure and Roles**
+2. **Frontend Basic Setup**
+3. **Backend Basic Setup**
+4. **Implementing IPFS and PubSub**
+5. **Implementing WebRTC/Libp2p**
+6. **Implementing DID Authentication**
+7. **NAT Traversal with STUN/TURN Servers**
+8. **Encryption and Data Security**
+9. **Using DTO, Provider, Repository Design Pattern**
+10. **Integrating Docker**
+11. **Adding Push Notification and Object Storage**
+12. **Final Integration and Testing**
+13. **Comprehensive Project Manual**
+14. **Conclusion and Verification**
+
+By following these structured questions, GPT will guide you through creating a fully functional decentralized chat app using Web 3.0 technology, ensuring each step builds upon the previous one and references the provided content and diagram effectively.
