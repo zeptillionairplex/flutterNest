@@ -1,16 +1,16 @@
-Sure! Below is a comprehensive manual for implementing a secure chat application using Flutter for the frontend and NestJS for the backend. This includes features such as file uploads, message reactions, swiping to reply, and URL previews.
+# Comprehensive Manual for Secure Chat Application
 
-## Comprehensive Manual for Secure Chat Application
+This manual provides a step-by-step guide to implementing a secure chat application using Flutter for the frontend and NestJS for the backend. The application includes features like user authentication, chat rooms, message reactions, file uploads, swiping to reply, URL previews, and environment-based configurations using `.env` files.
 
-### Prerequisites
+## Prerequisites
 
 1. **Node.js** and **npm**: Ensure you have Node.js and npm installed.
 2. **Flutter**: Ensure Flutter SDK is installed.
 3. **Docker**: Ensure Docker and Docker Compose are installed.
 
-### Project Structure
+## Project Structure
 
-#### Backend (NestJS)
+### Backend (NestJS)
 
 - `/src`
   - `/auth`
@@ -32,8 +32,12 @@ Sure! Below is a comprehensive manual for implementing a secure chat application
       - `create-message.dto.ts`
   - `app.module.ts`
   - `main.ts`
+- `.env.development`
+- `.env.production`
+- `Dockerfile`
+- `docker-compose.yml`
 
-#### Frontend (Flutter)
+### Frontend (Flutter)
 
 - `/lib`
   - `/screens`
@@ -45,10 +49,14 @@ Sure! Below is a comprehensive manual for implementing a secure chat application
     - `message_bubble.dart`
     - `url_preview.dart`
   - `main.dart`
+- `.env.development`
+- `.env.production`
 
-### Backend Setup (NestJS)
+## Backend Setup (NestJS)
 
-#### Step 1: NestJS Initialization
+### Step 1: NestJS Initialization
+
+Create a new NestJS project and install necessary packages:
 
 ```bash
 nest new secure-chat-app
@@ -57,11 +65,57 @@ npm install @nestjs/websockets @nestjs/platform-socket.io socket.io
 npm install @nestjs/passport passport passport-local
 npm install @nestjs/jwt passport-jwt
 npm install @nestjs/platform-express multer
+npm install dotenv
 ```
 
-#### Step 2: Auth Module
+### Step 2: Configure `.env` Files
 
-Create the following files with the respective content.
+Create `.env.development` and `.env.production` files in the root directory:
+
+**`.env.development`**
+
+```
+PORT=3000
+DATABASE_URL=mongodb://localhost:27017/dev_database
+JWT_SECRET=dev_secret_key
+```
+
+**`.env.production`**
+
+```
+PORT=3000
+DATABASE_URL=mongodb://localhost:27017/prod_database
+JWT_SECRET=prod_secret_key
+```
+
+### Step 3: Load Environment Variables
+
+Modify `main.ts` to load environment variables using `dotenv`:
+
+**`main.ts`**
+
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useStaticAssets(join(__dirname, '..', 'uploads'));
+
+  app.enableCors();
+  await app.listen(process.env.PORT || 3000);
+}
+bootstrap();
+```
+
+### Step 4: Auth Module
+
+Create the following files with the respective content:
 
 **`auth.module.ts`**
 
@@ -78,7 +132,7 @@ import { UsersModule } from '../users/users.module';
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: 'SECRET_KEY',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60m' },
     }),
     UsersModule,
@@ -164,9 +218,9 @@ export class LocalAuthGuard extends AuthGuard('local') {
 }
 ```
 
-#### Step 3: Chat Module
+### Step 5: Chat Module
 
-Create the following files with the respective content.
+Create the following files with the respective content:
 
 **`chat.module.ts`**
 
@@ -267,9 +321,9 @@ export class ChatController {
 }
 ```
 
-#### Step 4: Users Module
+### Step 6: Users Module
 
-Create the following files with the respective content.
+Create the following files with the respective content:
 
 **`users.module.ts`**
 
@@ -292,7 +346,9 @@ export class UsersModule {}
 import { Injectable } from '@nestjs/common';
 
 export interface User {
-  userId: number;
+ 
+
+ userId: number;
   username: string;
   password: string;
   friends: number[];
@@ -372,7 +428,7 @@ export class UsersController {
 }
 ```
 
-#### Step 5: Main Application Module
+### Step 7: Main Application Module
 
 **`app.module.ts`**
 
@@ -381,29 +437,17 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { UsersModule } from './users/users.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [AuthModule, ChatModule, UsersModule],
+  imports: [
+    MongooseModule.forRoot(process.env.DATABASE_URL),
+    AuthModule,
+    ChatModule,
+    UsersModule
+  ],
 })
 export class AppModule {}
-```
-
-**`main.ts`**
-
-```typescript
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
-
-async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(join(__dirname, '..', 'uploads'));
-
-  app.enableCors();
-  await app.listen(3000);
-}
-bootstrap();
 ```
 
 ### Dockerize the Backend Server
@@ -480,25 +524,48 @@ Run the following commands in the root directory of your project:
 
 #### Step 1: Flutter Initialization
 
+Create a new Flutter project and install necessary packages:
+
 ```bash
 flutter create secure_chat_app
 cd secure_chat_app
 flutter pub add provider
 flutter pub add socket_io_client
-flutter pub add flutter_link_previewer
+flutter pub add flutter_dotenv
 flutter pub add file_picker
 flutter pub add http
+flutter pub add flutter_link_previewer
 ```
 
-#### Step 2: Main Entry Point
+#### Step 2: Configure `.env` Files
+
+Create `.env.development` and `.env.production` files in the root directory:
+
+**`.env.development`**
+
+```
+API_URL=http://localhost:3000
+```
+
+**`.env.production`**
+
+```
+API_URL=https://api.production.com
+```
+
+#### Step 3: Load Environment Variables
+
+Modify `main.dart` to load environment variables using `flutter_dotenv`:
 
 **`main.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env.${String.fromEnvironment('ENV')}");
   runApp(SecureChatApp());
 }
 
@@ -516,7 +583,7 @@ class SecureChatApp extends StatelessWidget {
 }
 ```
 
-#### Step 3: Login Screen
+#### Step 4: Login Screen
 
 **`login_screen.dart`**
 
@@ -525,6 +592,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'chat_rooms_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -537,13 +605,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _register() async {
     final response = await http.post(
-      Uri.parse('http://localhost:3000/auth/register'),
+      Uri.parse('${dotenv.env['API_URL']}/auth/register'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
         'username': _usernameController.text,
-        'password': _passwordController.text,
+        'password': _usernameController.text,
       }),
     );
 
@@ -560,7 +628,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     final response = await http.post(
-      Uri.parse('http://localhost:3000/auth/login'),
+      Uri.parse('${dotenv.env['API_URL']}/auth/login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -620,7 +688,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 ```
 
-#### Step 4: Chat Rooms Screen
+#### Step 5: Chat Rooms Screen
 
 **`chat_rooms_screen.dart`**
 
@@ -655,7 +723,9 @@ class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
     setState(() {
       _chatRooms = [
         {'id': 1, 'name': 'General Chat'},
-        {'id': 2, 'name': 'Flutter Devs'},
+        {'id': 
+
+2, 'name': 'Flutter Devs'},
       ];
     });
   }
@@ -703,7 +773,7 @@ class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
 }
 ```
 
-#### Step 5: Chat Room Screen
+#### Step 6: Chat Room Screen
 
 **`chat_room_screen.dart`**
 
@@ -726,8 +796,6 @@ class ChatRoomScreen extends StatefulWidget {
   @override
   _ChatRoomScreenState createState() => _ChatRoomScreenState();
 }
-
-
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final TextEditingController _controller = TextEditingController();
@@ -913,7 +981,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 }
 ```
 
-#### Step 6: Friends Screen
+#### Step 7: Friends Screen
 
 **`friends_screen.dart`**
 
@@ -993,7 +1061,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
         _searchResults = (json.decode(response.body) as List)
             .map((user) => {
                   'username': user['username'],
-                  'userId': user['userId'],
+                 
+
+ 'userId': user['userId'],
                 })
             .toList();
       });
@@ -1045,7 +1115,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 }
 ```
 
-#### Step 7: Message Bubble Widget
+#### Step 8: Message Bubble Widget
 
 **`message_bubble.dart`**
 
@@ -1063,9 +1133,7 @@ class MessageBubble extends StatefulWidget {
   final Function onReact;
   final List<String> reactions;
 
- 
-
- MessageBubble({
+  MessageBubble({
     required this.message,
     required this.isMe,
     this.fileName,
@@ -1238,7 +1306,7 @@ class _MessageBubbleState extends State<MessageBubble> with SingleTickerProvider
 }
 ```
 
-#### Step 8: URL Preview Widget
+#### Step 9: URL Preview Widget
 
 **`url_preview.dart`**
 
@@ -1274,10 +1342,40 @@ class UrlPreview extends StatelessWidget {
 }
 ```
 
+### Build and Run the Applications
+
+#### NestJS Backend
+
+To run the backend in development mode:
+
+```bash
+NODE_ENV=development npm run start:dev
+```
+
+To run the backend in production mode:
+
+```bash
+NODE_ENV=production npm run start:prod
+```
+
+#### Flutter Frontend
+
+To run the Flutter app in development mode:
+
+```bash
+flutter run --dart-define=ENV=development
+```
+
+To run the Flutter app in production mode:
+
+```bash
+flutter run --dart-define=ENV=production
+```
+
 ### Summary
 
-1. **Backend**: Set up the NestJS backend with modules for authentication, chat, and user management. Dockerize the backend for easy deployment.
-2. **Frontend**: Implement the Flutter frontend with screens for login, chat rooms, chat room messages, friends management, and reactions.
+1. **Backend**: Set up the NestJS backend with modules for authentication, chat, and user management. Dockerize the backend for easy deployment. Configured environment variables using `.env` files.
+2. **Frontend**: Implement the Flutter frontend with screens for login, chat rooms, chat room messages, friends management, and reactions. Configured environment variables using `.env` files.
 3. **Integrate**: Ensure the frontend and backend communicate correctly via API endpoints and WebSocket connections.
 
 By following this comprehensive manual, you will have a fully functional, secure chat application with features such as file uploads, message reactions, swiping to reply, and URL previews, providing an interactive and modern chat experience.
