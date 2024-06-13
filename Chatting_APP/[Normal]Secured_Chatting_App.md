@@ -344,9 +344,7 @@ export class UsersService {
 }
 ```
 
-**`users.controller
-
-.ts`**
+**`users.controller.ts`**
 
 ```typescript
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
