@@ -400,9 +400,7 @@ This manual provides a detailed guide to building a decentralized, serverless ch
 
      String decrypt(String encryptedText) {
        final encrypter = encrypt.Encrypter(encrypt.AES(key));
-       final decrypted = encrypter
-
-.decrypt64(encryptedText, iv: iv);
+       final decrypted = encrypter.decrypt64(encryptedText, iv: iv);
        return decrypted;
      }
    }
