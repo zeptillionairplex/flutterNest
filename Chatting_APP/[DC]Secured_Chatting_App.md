@@ -23,7 +23,7 @@ This manual provides detailed instructions for developing a serverless, secure c
    - [Widgets](#widgets)
 4. [Docker Integration](#docker-integration)
 5. [Running the Application](#running-the-application)
-6. [ENV Setting](#.env-setting)
+6. [ENV Setting](#env-setting)
 
 ---
 
