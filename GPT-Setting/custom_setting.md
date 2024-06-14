@@ -1,4 +1,6 @@
-![ChatGPT 맞춤 설정](https://github.com/zeptillionairplex/flutterNest/assets/166411937/161a33e3-742c-4477-b304-ecc08ae40e21)
+![ChatGPT 맞춤 설정](https://github.com/zeptillionairplex/flutterNest/assets/166411937/161a33e3-742c-4477-b304-ecc08ae40e21)  
+
+[God of Prompt's Blog](https://www.godofprompt.ai/blog)  
 
 # Custom Setting
 ## Box 1 Setting
