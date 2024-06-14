@@ -23,6 +23,7 @@ This manual provides detailed instructions for developing a serverless, secure c
    - [Widgets](#widgets)
 4. [Docker Integration](#docker-integration)
 5. [Running the Application](#running-the-application)
+6. [.env setting](#.env-setting)
 
 ---
 
@@ -1426,3 +1427,146 @@ flutter run
 ---
 
 This comprehensive manual covers the setup and development of a decentralized chat application using Web3.0 technologies. By following these steps, you can ensure that the application is secure, serverless, and ready for real-world use. The integration of IPFS, PubSub, WebRTC/Libp2p, and DID authentication ensures that the application leverages the best of decentralized technologies.
+
+#.env setting
+Certainly! Below are examples of `.env.development` and `.env.production` files that you can use to configure your development and production environments.
+
+### .env.development
+
+```plaintext
+# Server settings
+PORT=3000
+NODE_ENV=development
+
+# Database settings
+MONGO_URI=mongodb://localhost:27017/secure_chat_app_dev
+
+# Encryption key
+ENCRYPTION_KEY=my_strong_secret_key_development
+
+# IPFS settings
+IPFS_NODE=https://ipfs.infura.io:5001
+
+# WebRTC settings
+STUN_SERVER=stun:stun.l.google.com:19302
+TURN_SERVER=turn:your_turn_server_address
+TURN_USERNAME=your_turn_username
+TURN_PASSWORD=your_turn_password
+
+# DID settings
+DID_RESOLVER_ENDPOINT=https://did-resolver.example.com
+
+# JWT settings
+JWT_SECRET=your_jwt_secret_development
+
+# Notification settings
+NOTIFICATION_SERVICE_ENDPOINT=https://notification.example.com
+
+# Other configurations
+OTHER_CONFIG=your_other_config_development
+```
+
+### .env.production
+
+```plaintext
+# Server settings
+PORT=3000
+NODE_ENV=production
+
+# Database settings
+MONGO_URI=mongodb://localhost:27017/secure_chat_app_prod
+
+# Encryption key
+ENCRYPTION_KEY=my_strong_secret_key_production
+
+# IPFS settings
+IPFS_NODE=https://ipfs.infura.io:5001
+
+# WebRTC settings
+STUN_SERVER=stun:stun.l.google.com:19302
+TURN_SERVER=turn:your_turn_server_address
+TURN_USERNAME=your_turn_username
+TURN_PASSWORD=your_turn_password
+
+# DID settings
+DID_RESOLVER_ENDPOINT=https://did-resolver.example.com
+
+# JWT settings
+JWT_SECRET=your_jwt_secret_production
+
+# Notification settings
+NOTIFICATION_SERVICE_ENDPOINT=https://notification.example.com
+
+# Other configurations
+OTHER_CONFIG=your_other_config_production
+```
+
+### Using Environment Variables in the Application
+
+Ensure that your application reads these environment variables correctly. For example, in NestJS, you can use the `@nestjs/config` package to load and use environment variables.
+
+**Install the `@nestjs/config` package:**
+
+```bash
+npm install @nestjs/config
+```
+
+**Update `src/app.module.ts` to include the configuration module:**
+
+```typescript
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { UsersModule } from './users/users.module';
+import { EncryptionService } from './common/encryption.service';
+import { IpfsService } from './common/ipfs.service';
+import { DidService } from './common/did.service';
+import { Libp2pService } from './common/libp2p.service';
+import { NotificationService } from './common/notification.service';
+import { ScheduleModule } from '@nestjs/schedule';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: `.env.${process.env.NODE_ENV}`,
+    }),
+    AuthModule,
+    ChatModule,
+    UsersModule,
+    ScheduleModule.forRoot(),
+  ],
+  providers: [EncryptionService, IpfsService, DidService, Libp2pService, NotificationService],
+})
+export class AppModule {}
+```
+
+**Use environment variables in your services:**
+
+For example, in `src/common/encryption.service.ts`:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import * as CryptoJS from 'crypto-js';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class EncryptionService {
+  private readonly key: string;
+
+  constructor(private configService: ConfigService) {
+    this.key = this.configService.get<string>('ENCRYPTION_KEY');
+  }
+
+  encrypt(text: string): string {
+    return CryptoJS.AES.encrypt(text, this.key).toString();
+  }
+
+  decrypt(ciphertext: string): string {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, this.key);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  }
+}
+```
+
+This approach ensures that you can easily switch between development and production configurations by simply setting the `NODE_ENV` environment variable appropriately when starting your application.
