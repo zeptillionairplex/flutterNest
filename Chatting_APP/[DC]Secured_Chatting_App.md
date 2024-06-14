@@ -1428,7 +1428,7 @@ flutter run
 
 This comprehensive manual covers the setup and development of a decentralized chat application using Web3.0 technologies. By following these steps, you can ensure that the application is secure, serverless, and ready for real-world use. The integration of IPFS, PubSub, WebRTC/Libp2p, and DID authentication ensures that the application leverages the best of decentralized technologies.
 
-#.env setting
+## .env setting
 Certainly! Below are examples of `.env.development` and `.env.production` files that you can use to configure your development and production environments.
 
 ### .env.development
