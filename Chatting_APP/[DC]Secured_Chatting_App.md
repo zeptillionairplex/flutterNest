@@ -122,6 +122,90 @@ secure_chat_app/
 
 ### Install Dependencies
 
+네, NestJS CLI를 사용하여 파일 트리에 맞게 모듈, 컨트롤러, 서비스, 그리고 기타 필요한 파일들을 생성하는 명령어들을 정리해드리겠습니다.
+
+### 1. 프로젝트 생성
+```sh
+nest new secure-chat-app
+cd secure-chat-app
+```
+
+### 2. 모듈 생성
+```sh
+nest g module auth
+nest g module chat
+nest g module users
+nest g module common
+nest g module repositories
+```
+
+### 3. 컨트롤러 생성
+```sh
+nest g controller auth
+nest g controller chat
+nest g controller users
+```
+
+### 4. 서비스 생성
+```sh
+nest g service auth
+nest g service chat
+nest g service users
+nest g service common/encryption
+nest g service common/ipfs
+nest g service common/notification
+nest g service common/did
+nest g service common/libp2p
+nest g service repositories/user
+nest g service repositories/message
+```
+
+### 5. 게이트웨이 생성
+```sh
+nest g gateway chat
+```
+
+### 6. 기타 필요한 파일 생성
+이 파일들은 NestJS CLI로 자동 생성되지 않으므로 수동으로 만들어야 합니다. VS Code 터미널에서 다음 명령어를 사용하여 빈 파일을 생성할 수 있습니다.
+
+```sh
+New-Item -ItemType Directory -Force -Path .\src\auth\dto
+New-Item -ItemType Directory -Force -Path .\src\auth\strategies
+New-Item -ItemType Directory -Force -Path .\src\chat\dto
+New-Item -ItemType Directory -Force -Path .\src\chat\interfaces
+New-Item -ItemType Directory -Force -Path .\src\common
+New-Item -ItemType Directory -Force -Path .\src\users\dto
+New-Item -ItemType Directory -Force -Path .\src\users\interfaces
+New-Item -ItemType Directory -Force -Path .\src\repositories
+
+# auth 관련 파일들
+type nul > src/auth/dto/login.dto.ts
+type nul > src/auth/dto/register.dto.ts
+type nul > src/auth/strategies/jwt.strategy.ts
+type nul > src/auth/strategies/local.strategy.ts
+
+# chat 관련 파일들
+type nul > src/chat/dto/create-message.dto.ts
+type nul > src/chat/interfaces/message.interface.ts
+
+# users 관련 파일들
+type nul > src/users/dto/create-user.dto.ts
+type nul > src/users/interfaces/user.interface.ts
+
+# 기타 파일들
+type nul > src/app.module.ts
+type nul > src/main.ts
+
+# 루트 디렉터리의 파일들
+type nul > .env.development
+type nul > .env.production
+type nul > Dockerfile
+type nul > docker-compose.yml
+type nul > package.json
+type nul > tsconfig.json
+type nul > README.md
+```
+
 ```bash
 npm install @nestjs/swagger swagger-ui-express
 npm install @nestjs/mongoose mongoose
