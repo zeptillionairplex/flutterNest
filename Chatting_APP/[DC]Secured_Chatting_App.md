@@ -50,6 +50,8 @@ secure-chat-app/
 │   │   ├── chat.gateway.ts
 │   │   ├── chat.module.ts
 │   │   ├── chat.service.ts
+│   │   ├── schemas/
+│   │   │   ├── message.schema.ts
 │   │   ├── dto/
 │   │   │   ├── create-message.dto.ts
 │   │   └── interfaces/
@@ -64,6 +66,8 @@ secure-chat-app/
 │   │   ├── users.controller.ts
 │   │   ├── users.module.ts
 │   │   ├── users.service.ts
+│   │   ├── schemas/
+│   │   │   ├── user.schema.ts
 │   │   ├── dto/
 │   │   │   ├── create-user.dto.ts
 │   │   └── interfaces/
@@ -181,10 +185,12 @@ type nul > src/auth/strategies/local.strategy.ts
 # chat 관련 파일들
 type nul > src/chat/dto/create-message.dto.ts
 type nul > src/chat/interfaces/message.interface.ts
+type nul > src/chat/schemas/message.schema.ts
 
 # users 관련 파일들
 type nul > src/users/dto/create-user.dto.ts
 type nul > src/users/interfaces/user.interface.ts
+type nul > src/users/schemas/user.schema.ts
 
 # 기타 파일들
 type nul > src/repositories/user.repository.ts
