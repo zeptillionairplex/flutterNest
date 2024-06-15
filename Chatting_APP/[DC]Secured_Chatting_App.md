@@ -245,6 +245,45 @@ async function bootstrap() {
 bootstrap();
 ```
 
+### Integrate Schemas with Mongoose in NestJS Modules
+
+Ensure that your `AppModule` or respective feature modules are set up to use these schemas.
+
+**Path: `src/app.module.ts`**
+
+```typescript
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { UsersModule } from './users/users.module';
+import { CommonModule } from './common/common.module';
+import { UserSchema } from './users/schemas/user.schema';
+import { MessageSchema } from './chat/schemas/message.schema';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGO_URI),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: 'Message', schema: MessageSchema },
+    ]),
+    AuthModule,
+    ChatModule,
+    UsersModule,
+    CommonModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+
+```
+
 ### Auth Module
 
 **`src/auth/auth.controller.ts`**
@@ -581,6 +620,56 @@ export class ChatService {
 }
 ```
 
+#### Message Schema, Interface, DTO
+
+**Path: `src/chat/interfaces/message.interface.ts`**
+
+```typescript
+import { Document } from 'mongoose';
+
+export interface Message extends Document {
+  readonly chatRoomId: number;
+  readonly content: string;
+  readonly sender: string;
+  readonly timestamp: string;
+}
+```
+
+**Path: `src/chat/schemas/message.schema.ts`**
+
+```typescript
+import { Schema } from 'mongoose';
+
+export const MessageSchema = new Schema({
+  chatRoomId: { type: Number, required: true },
+  content: { type: String, required: true },
+  sender: { type: String, required: true },
+  timestamp: { type: String, required: true },
+});
+```
+
+#### `create-message.dto.ts`
+
+**Path: `src/chat/dto/create-message.dto.ts`**
+
+```typescript
+import { IsString, IsInt } from 'class-validator';
+
+export class CreateMessageDto {
+  @IsInt()
+  readonly chatRoomId: number;
+
+  @IsString()
+  readonly content: string;
+
+  @IsString()
+  readonly sender: string;
+
+  @IsString()
+  readonly timestamp: string;
+}
+```
+
 ### Users Module
 
 **`src/users/users.controller.ts`**
@@ -634,6 +723,90 @@ export class UsersService {
 
   async findOne(username: string) {
     return this.userRepository.findOne(username);
+  }
+}
+```
+
+#### User Schema and Interface
+
+**Path: `src/users/interfaces/user.interface.ts`**
+
+```typescript
+import { Document } from 'mongoose';
+
+export interface User extends Document {
+  readonly username: string;
+  readonly password: string;
+  readonly did: string;
+}
+```
+
+**Path: `src/users/schemas/user.schema.ts`**
+
+```typescript
+import { Schema } from 'mongoose';
+
+export const UserSchema = new Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  did: { type: String, required: true },
+});
+```
+
+### Repositories
+
+#### User Repository
+
+**Path: `src/repositories/user.repository.ts`**
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from '../users/interfaces/user.interface';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+
+@Injectable()
+export class UserRepository {
+  constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const createdUser = new this.userModel(createUserDto);
+    return createdUser.save();
+  }
+
+  async findOne(username: string): Promise<User | undefined> {
+    return this.userModel.findOne({ username }).exec();
+  }
+
+  async findById(id: string): Promise<User | undefined> {
+    return this.userModel.findById(id).exec();
+  }
+}
+```
+
+#### Message Repository
+
+**Path: `src/repositories/message.repository.ts`**
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Message } from '../chat/interfaces/message.interface';
+import { CreateMessageDto } from '../chat/dto/create-message.dto';
+
+@Injectable()
+export class MessageRepository {
+  constructor(@InjectModel('Message') private readonly messageModel: Model<Message>) {}
+
+  async create(createMessageDto: CreateMessageDto): Promise<Message> {
+    const createdMessage = new this.messageModel(createMessageDto);
+    return createdMessage.save();
+  }
+
+  async findAll(chatRoomId: number): Promise<Message[]> {
+    return this.messageModel.find({ chatRoomId }).exec();
   }
 }
 ```
