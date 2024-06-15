@@ -151,13 +151,8 @@ nest g controller users
 nest g service auth
 nest g service chat
 nest g service users
-nest g service common/encryption
-nest g service common/ipfs
-nest g service common/notification
-nest g service common/did
-nest g service common/libp2p
-nest g service repositories/user
-nest g service repositories/message
+nest g service common
+nest g service repositories
 ```
 
 ### 5. 게이트웨이 생성
@@ -176,7 +171,6 @@ New-Item -ItemType Directory -Force -Path .\src\chat\interfaces
 New-Item -ItemType Directory -Force -Path .\src\common
 New-Item -ItemType Directory -Force -Path .\src\users\dto
 New-Item -ItemType Directory -Force -Path .\src\users\interfaces
-New-Item -ItemType Directory -Force -Path .\src\repositories
 
 # auth 관련 파일들
 type nul > src/auth/dto/login.dto.ts
@@ -193,8 +187,8 @@ type nul > src/users/dto/create-user.dto.ts
 type nul > src/users/interfaces/user.interface.ts
 
 # 기타 파일들
-type nul > src/app.module.ts
-type nul > src/main.ts
+type nul > src/repositories/user.repository.ts
+type nul > src/repositories/message.repository.ts
 
 # 루트 디렉터리의 파일들
 type nul > .env.development
@@ -216,6 +210,7 @@ npm install libp2p libp2p-webrtc-star
 npm install did-jwt did-resolver key-did-resolver
 npm install @nestjs/schedule node-notifier
 npm install dotenv
+npm install class-validator
 ```
 
 ### Configure Swagger
