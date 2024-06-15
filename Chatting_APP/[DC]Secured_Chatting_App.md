@@ -306,18 +306,136 @@ export class AuthService {
     private readonly didService: DidService,
   ) {}
 
+  async validateUser(username: string, pass: string): Promise<any> {
+    const user = await this.usersService.findOne(username);
+    if (user && user.password === pass) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
   async register(user: CreateUserDto) {
     return this.usersService.create(user);
   }
 
-  async login(did: string, payload: any, signer: any) {
-    const jwt = await this.didService.createJWT(payload, did, signer);
-    return { jwt };
+  async login(user: any) {
+    const payload = { username: user.username, sub: user.userId };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
   async verify(token: string) {
     const verified = await this.didService.verifyJWT(token);
     return verified;
+  }
+}
+```
+
+### DTO Files
+
+#### `login.dto.ts`
+
+**Path: `src/auth/dto/login.dto.ts`**
+
+This DTO defines the structure of the data required for the login request.
+
+```typescript
+import { IsString } from 'class-validator';
+
+export class LoginDto {
+  @IsString()
+  readonly username: string;
+
+  @IsString()
+  readonly password: string;
+}
+```
+
+#### `register.dto.ts`
+
+**Path: `src/auth/dto/register.dto.ts`**
+
+This DTO defines the structure of the data required for the registration request.
+
+```typescript
+import { IsString } from 'class-validator';
+
+export class RegisterDto {
+  @IsString()
+  readonly username: string;
+
+  @IsString()
+  readonly password: string;
+
+  @IsString()
+  readonly did: string;
+}
+```
+
+### Strategy Files
+
+#### `jwt.strategy.ts`
+
+**Path: `src/auth/strategies/jwt.strategy.ts`**
+
+This strategy validates JWT tokens to authenticate users.
+
+```typescript
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../../users/users.service';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+  ) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: configService.get<string>('JWT_SECRET'),
+    });
+  }
+
+  async validate(payload: any) {
+    const user = await this.usersService.findOne(payload.username);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return user;
+  }
+}
+```
+
+#### `local.strategy.ts`
+
+**Path: `src/auth/strategies/local.strategy.ts`**
+
+This strategy handles user authentication using a username and password.
+
+```typescript
+import { Strategy } from 'passport-local';
+import { PassportStrategy } from '@nestjs/passport';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from '../auth.service';
+
+@Injectable()
+export class LocalStrategy extends PassportStrategy(Strategy) {
+  constructor(private authService: AuthService) {
+    super();
+  }
+
+  async validate(username: string, password: string): Promise<any> {
+    const user = await this.authService.validateUser(username, password);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return user;
   }
 }
 ```
