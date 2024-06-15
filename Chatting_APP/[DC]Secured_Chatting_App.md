@@ -212,7 +212,7 @@ npm install @nestjs/mongoose mongoose
 npm install @nestjs/passport passport passport-local passport-jwt @nestjs/jwt
 npm install crypto-js
 npm install ipfs-http-client
-npm install @libp2p/js-libp2p @libp2p/js-libp2p-webrtc-star
+npm install libp2p libp2p-webrtc-star
 npm install did-jwt did-resolver key-did-resolver
 npm install @nestjs/schedule node-notifier
 npm install dotenv
