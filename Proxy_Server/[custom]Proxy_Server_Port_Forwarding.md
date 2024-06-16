@@ -1,11 +1,45 @@
-## Nest.js와 Localtunnel을 이용한 프록시 서버 설정 매뉴얼 (Docker 포함)
+이 문제는 최신 버전의 `http-proxy-middleware`에서 `onProxyReq`와 같은 특정 옵션을 사용하는 경우 발생할 수 있습니다. 이 문제를 해결하려면 `onProxyReq` 옵션을 올바르게 사용하도록 코드와 타입 정의를 조정해야 합니다.
 
-이 매뉴얼은 Nest.js 프로젝트를 Docker로 컨테이너화하고, Localtunnel을 사용하여 프록시 서버를 설정하며, 서버 시작 시 Localtunnel URL을 터미널에 출력하는 방법을 설명합니다. Docker Compose를 사용하여 여러 컨테이너를 관리하는 방법도 포함합니다.
+여기서는 `Options` 인터페이스를 명시적으로 확장하거나 타입 캐스팅을 사용하여 해결할 수 있습니다.
+
+### 코드 개선
+
+#### 1. ProxyService 수정
+
+**src/proxy/proxy.service.ts**
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { createProxyMiddleware, Options, RequestHandler } from 'http-proxy-middleware';
+import { Request, Response } from 'express';
+
+@Injectable()
+export class ProxyService {
+  getProxyMiddleware(target: string): RequestHandler {
+    const options: Options = {
+      target,
+      changeOrigin: true,
+      pathRewrite: { '^/proxy': '' },
+      onProxyReq: (proxyReq: any, req: Request, res: Response) => {
+        console.log(`Proxying request to: ${target}${req.url}`);
+      },
+    } as Options & { onProxyReq: (proxyReq: any, req: Request, res: Response) => void };
+
+    return createProxyMiddleware(options);
+  }
+}
+```
+
+여기서 중요한 부분은 `as Options & { onProxyReq: (proxyReq: any, req: Request, res: Response) => void }`로 타입을 확장하여 `onProxyReq`를 포함시키는 것입니다.
+
+### 전체 매뉴얼 업데이트
 
 ### 파일 구조
 
 ```
 /MyNestProxyProject
+    |-- dist
+        |-- start-localtunnel.js
     |-- src
         |-- main.ts
         |-- app.module.ts
@@ -15,7 +49,7 @@
             |-- proxy.service.ts
     |-- package.json
     |-- tsconfig.json
-    |-- start-localtunnel.js
+    |-- start-localtunnel.ts
     |-- Dockerfile
     |-- docker-compose.yml
 ```
@@ -32,22 +66,23 @@ nest new MyNestProxyProject
 cd MyNestProxyProject
 ```
 
-#### 1.2 Localtunnel 설치
+#### 1.2 필요한 패키지 설치
 
-프로젝트 디렉토리에서 다음 명령어를 실행하여 Localtunnel을 설치합니다.
+프로젝트 디렉토리에서 다음 명령어를 실행하여 `localtunnel` 및 `http-proxy-middleware`와 그 타입 선언 파일을 설치합니다.
 
 ```bash
-npm install localtunnel
+npm install localtunnel http-proxy-middleware
+npm install --save-dev @types/http-proxy-middleware ts-node
 ```
 
 ### 2. Localtunnel 스크립트 작성
 
-프로젝트 루트에 `start-localtunnel.js` 파일을 생성하고 다음 코드를 작성합니다.
+프로젝트 루트에 `start-localtunnel.ts` 파일을 생성하고 다음 코드를 작성합니다.
 
-**start-localtunnel.js**
+**start-localtunnel.ts**
 
-```javascript
-const localtunnel = require('localtunnel');
+```typescript
+import localtunnel from 'localtunnel';
 
 (async () => {
   const port = 3000; // Nest.js 서버가 실행 중인 포트
@@ -62,33 +97,58 @@ const localtunnel = require('localtunnel');
 })();
 ```
 
-### 3. Nest.js 프록시 서버 설정
+### 3. tsconfig.json 수정
 
-#### 3.1 프록시 서비스 작성
+**tsconfig.json**
+
+```json
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "typeRoots": ["./node_modules/@types"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["src", "start-localtunnel.ts"]
+}
+```
+
+### 4. Nest.js 프록시 서버 설정
+
+#### 4.1 프록시 서비스 작성
 
 **src/proxy/proxy.service.ts**
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, Options, RequestHandler } from 'http-proxy-middleware';
 import { Request, Response } from 'express';
 
 @Injectable()
 export class ProxyService {
-  getProxyMiddleware(target: string) {
-    return createProxyMiddleware({
+  getProxyMiddleware(target: string): RequestHandler {
+    const options: Options = {
       target,
       changeOrigin: true,
       pathRewrite: { '^/proxy': '' },
-      onProxyReq: (proxyReq, req: Request, res: Response) => {
+      onProxyReq: (proxyReq: any, req: Request, res: Response) => {
         console.log(`Proxying request to: ${target}${req.url}`);
       },
-    });
+    } as Options & { onProxyReq: (proxyReq: any, req: Request, res: Response) => void };
+
+    return createProxyMiddleware(options);
   }
 }
 ```
 
-#### 3.2 프록시 컨트롤러 작성
+#### 4.2 프록시 컨트롤러 작성
 
 **src/proxy/proxy.controller.ts**
 
@@ -110,7 +170,7 @@ export class ProxyController {
 }
 ```
 
-#### 3.3 프록시 모듈 작성
+#### 4.3 프록시 모듈 작성
 
 **src/proxy/proxy.module.ts**
 
@@ -126,7 +186,7 @@ import { ProxyService } from './proxy.service';
 export class ProxyModule {}
 ```
 
-#### 3.4 앱 모듈 업데이트
+#### 4.4 앱 모듈 업데이트
 
 **src/app.module.ts**
 
@@ -140,7 +200,7 @@ import { ProxyModule } from './proxy/proxy.module';
 export class AppModule {}
 ```
 
-### 4. Localtunnel과 서버 통합
+### 5. Localtunnel과 서버 통합
 
 **src/main.ts**
 
@@ -153,32 +213,33 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
 
-  // LocalTunnel 스크립트 실행
-  const localtunnelProcess = exec('node start-localtunnel.js');
-
-  // LocalTunnel 출력 로그를 동일한 터미널에 출력
-  localtunnelProcess.stdout.on('data', (data) => {
-    console.log(data.toString());
-  });
-
-  localtunnelProcess.stderr.on('data', (data) => {
-    console.error(data.toString());
+  // TypeScript 파일을 컴파일하고 실행
+  exec('tsc && node dist/start-localtunnel.js', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error starting LocalTunnel: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(stdout);
   });
 }
 
 bootstrap();
 ```
 
-### 5. Docker 설정
+### 6. Docker 설정
 
-#### 5.1 Dockerfile 작성
+#### 6.1 Dockerfile 작성
 
 프로젝트 루트에 `Dockerfile` 파일을 생성하고 다음 코드를 작성합니다.
 
 **Dockerfile**
 
 ```Dockerfile
-# Use the official Nest.js base image
+# Use the official Node.js image
 FROM node:14
 
 # Set the working directory
@@ -193,14 +254,17 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+# Build the TypeScript code
+RUN npm run build
+
 # Expose the port the app runs on
 EXPOSE 3000
 
 # Run the application
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:dev"]
 ```
 
-#### 5.2 Docker Compose 파일 작성
+#### 6.2 Docker Compose 파일 작성
 
 프로젝트 루트에 `docker-compose.yml` 파일을 생성하고 다음 코드를 작성합니다.
 
@@ -213,12 +277,15 @@ services:
     build: .
     ports:
       - '3000:3000'
-    command: sh -c "npm run start"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start:dev
 ```
 
-### 6. 프로젝트 실행
+### 7. 프로젝트 실행
 
-#### 6.1 Docker Compose를 사용하여 프로젝트 실행
+#### 7.1 Docker Compose를 사용하여 프로젝트 실행
 
 터미널에서 다음 명령어를 실행하여 Docker Compose로 프로젝트를 시작합니다.
 
@@ -230,10 +297,13 @@ docker-compose up --build
 
 ### 요약
 
-- **Localtunnel 설치**: 프로젝트에 Localtunnel을 설치합니다.
-- **Localtunnel 스크립트 작성**: Localtunnel을 실행하고 URL을 터미널에 출력하는 스크립트를 작성합니다.
+- **필요한 패키지 설치**: `localtunnel`과 `http-proxy-middleware` 및 그 타입 선언 파일을 설치합니다.
+- **Localtunnel 스크립트 작성**: `require`를 `import`로 대체하고, 파일 확장자를 `.ts`로 변경하여 `start-localtunnel.ts` 파일을 작성합니다.
+- **tsconfig.json 수정**: `esModuleInterop` 옵션을 `true`로 설정합니다.
 - **Nest.js 프록시 서버 설정**: 프록시 서비스를 작성하고, Nest.js 서버와 통합합니다.
 - **Docker 설정**: Dockerfile과 Docker Compose 파일을 작성하여 프로젝트를 컨테이너화합니다.
 - **프로젝트 실행**: Docker Compose를 사용하여 프로젝트를 실행하면 Localtunnel URL이 터미널에 자동으로 출력됩니다.
 
-이 매뉴얼을 따라하면, Nest.js 서버를 Docker로 컨테이너화하고, 외부에서 접근 가능하게 하며, 프로그램적으로 Localtunnel URL을 터미널에 출력하는 프록시 서버를 설정할 수 있습니다.
+이 매뉴얼을 따라하면, Nest.js 서버를 Docker로 컨테이너화하고,
+
+ 외부에서 접근 가능하게 하며, 프로그램적으로 Localtunnel URL을 터미널에 출력하는 프록시 서버를 설정할 수 있습니다.
