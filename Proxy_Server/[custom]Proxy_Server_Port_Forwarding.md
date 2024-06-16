@@ -240,7 +240,7 @@ bootstrap();
 
 ```Dockerfile
 # Use the official Node.js image
-FROM node:14
+FROM node:18
 
 # Set the working directory
 WORKDIR /usr/src/app
