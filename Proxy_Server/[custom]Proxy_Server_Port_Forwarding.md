@@ -218,23 +218,20 @@ export class AppModule {}
 ```typescript
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { exec } from 'child_process';
+import { Logger } from '@nestjs/common';
+import localtunnel from 'localtunnel';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
 
-  // TypeScript 파일을 컴파일하고 실행
-  exec('tsc && node dist/start-localtunnel.js', (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error starting LocalTunnel: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(stdout);
+  // LocalTunnel 설정 및 URL 출력
+  const tunnel = await localtunnel({ port: 3000 });
+
+  Logger.log(`LocalTunnel is running at: ${tunnel.url}`, 'Bootstrap');
+
+  tunnel.on('close', () => {
+    Logger.log('LocalTunnel is closed', 'Bootstrap');
   });
 }
 
@@ -282,6 +279,8 @@ CMD ["npm", "run", "start:dev"]
 **docker-compose.yml**
 
 ```yaml
+# docker-compose up --build
+# docker-compose down -v
 version: '3.8'
 services:
   app:
