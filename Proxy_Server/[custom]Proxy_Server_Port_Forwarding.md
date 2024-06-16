@@ -1,31 +1,6 @@
+## Nest.js와 Localtunnel을 이용한 프록시 서버 설정 매뉴얼 (Docker 포함)
 
-### 1. Nest.js CLI 설치
-
-먼저 Nest.js CLI를 글로벌로 설치합니다.
-
-```bash
-npm install -g @nestjs/cli
-```
-
-### 2. 새로운 Nest.js 프로젝트 생성
-
-Nest.js CLI를 사용하여 새로운 프로젝트를 생성합니다.
-
-```bash
-nest new MyNestProxyProject
-```
-
-이후에 프로젝트 생성이 완료되면 해당 디렉토리로 이동합니다.
-
-```bash
-cd MyNestProxyProject
-```
-
-다음은 앞서 설명한 대로 Localtunnel을 설치하고, 스크립트를 작성하며, 프로젝트를 설정하는 방법을 정리한 매뉴얼입니다.
-
-## Nest.js와 Localtunnel을 이용한 프록시 서버 설정 매뉴얼
-
-이 매뉴얼은 Nest.js 프로젝트에서 Localtunnel을 사용하여 프록시 서버를 설정하고, Nest.js 서버 시작 시 Localtunnel URL을 자동으로 터미널에 출력하는 방법을 설명합니다.
+이 매뉴얼은 Nest.js 프로젝트를 Docker로 컨테이너화하고, Localtunnel을 사용하여 프록시 서버를 설정하며, 서버 시작 시 Localtunnel URL을 터미널에 출력하는 방법을 설명합니다. Docker Compose를 사용하여 여러 컨테이너를 관리하는 방법도 포함합니다.
 
 ### 파일 구조
 
@@ -41,6 +16,8 @@ cd MyNestProxyProject
     |-- package.json
     |-- tsconfig.json
     |-- start-localtunnel.js
+    |-- Dockerfile
+    |-- docker-compose.yml
 ```
 
 ### 1. 준비 작업
@@ -192,12 +169,61 @@ async function bootstrap() {
 bootstrap();
 ```
 
-### 5. 프로젝트 실행
+### 5. Docker 설정
 
-터미널에서 다음 명령어를 실행하여 프로젝트를 시작합니다.
+#### 5.1 Dockerfile 작성
+
+프로젝트 루트에 `Dockerfile` 파일을 생성하고 다음 코드를 작성합니다.
+
+**Dockerfile**
+
+```Dockerfile
+# Use the official Nest.js base image
+FROM node:14
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Run the application
+CMD ["npm", "run", "start"]
+```
+
+#### 5.2 Docker Compose 파일 작성
+
+프로젝트 루트에 `docker-compose.yml` 파일을 생성하고 다음 코드를 작성합니다.
+
+**docker-compose.yml**
+
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    command: sh -c "npm run start"
+```
+
+### 6. 프로젝트 실행
+
+#### 6.1 Docker Compose를 사용하여 프로젝트 실행
+
+터미널에서 다음 명령어를 실행하여 Docker Compose로 프로젝트를 시작합니다.
 
 ```bash
-npm run start
+docker-compose up --build
 ```
 
 서버가 시작되면 터미널에 Localtunnel URL이 출력됩니다. 이 URL을 통해 외부에서 로컬 서버에 접근할 수 있습니다.
@@ -207,6 +233,7 @@ npm run start
 - **Localtunnel 설치**: 프로젝트에 Localtunnel을 설치합니다.
 - **Localtunnel 스크립트 작성**: Localtunnel을 실행하고 URL을 터미널에 출력하는 스크립트를 작성합니다.
 - **Nest.js 프록시 서버 설정**: 프록시 서비스를 작성하고, Nest.js 서버와 통합합니다.
-- **서버 실행**: Nest.js 서버를 실행하면 Localtunnel URL이 터미널에 자동으로 출력됩니다.
+- **Docker 설정**: Dockerfile과 Docker Compose 파일을 작성하여 프로젝트를 컨테이너화합니다.
+- **프로젝트 실행**: Docker Compose를 사용하여 프로젝트를 실행하면 Localtunnel URL이 터미널에 자동으로 출력됩니다.
 
-이 매뉴얼을 따라하면, Nest.js 서버를 외부에서 접근 가능하게 하고, 프로그램적으로 Localtunnel URL을 터미널에 출력하는 프록시 서버를 설정할 수 있습니다.
+이 매뉴얼을 따라하면, Nest.js 서버를 Docker로 컨테이너화하고, 외부에서 접근 가능하게 하며, 프로그램적으로 Localtunnel URL을 터미널에 출력하는 프록시 서버를 설정할 수 있습니다.
