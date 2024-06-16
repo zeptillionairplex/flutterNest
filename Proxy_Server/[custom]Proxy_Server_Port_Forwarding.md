@@ -105,19 +105,30 @@ import localtunnel from 'localtunnel';
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es6",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "moduleResolution": "node",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "typeRoots": ["./node_modules/@types"],
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "rootDir": "./"
   },
-  "include": ["src", "start-localtunnel.ts"]
+  "include": ["src/**/*.ts", "start-localtunnel.ts"]
 }
+
 ```
 
 ### 4. Nest.js 프록시 서버 설정
