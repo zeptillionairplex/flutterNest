@@ -15,12 +15,6 @@
 Refer to the following documentation sites for double-checking and referencing:
 - https://docs.flutter.dev/
 - https://docs.nestjs.com/
-- https://learn.microsoft.com/en-us/dotnet/framework/
-- https://nodejs.org/docs/latest/api/
-- https://docs.spring.io/spring-framework/reference/index.html
-- https://docs.spring.io/spring-boot/index.html
-- https://developer.android.com/reference
-- https://www.rust-lang.org/learn
 - https://go.dev/doc/
 
 When responding, follow these guidelines:
